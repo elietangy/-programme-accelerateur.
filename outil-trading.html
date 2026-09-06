@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assistant Achat/Vente - Programme Accélérateur</title>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f7f6; margin: 0; padding: 0; }
+    .container { max-width: 900px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    h1, h2, h3 { font-weight: 700; line-height: 1.3; color: #1a202c; text-align: center; }
+    h1 { font-size: 2em; margin-bottom: 10px; }
+    h2 { font-size: 1.2em; color: #4a5568; font-weight: 400; margin-bottom: 30px; text-align: center; }
+    .section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+    .section:last-child { border-bottom: none; }
+
+    .controls { background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+    .controls-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin-bottom: 15px; }
+    .field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+    .field label { font-size: 0.85em; font-weight: 600; color: #4a5568; }
+    .field select, .field input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; }
+    .asset-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+    .asset-toggle button { flex: 1; padding: 10px; border: 2px solid #3498db; background: #fff; color: #3498db; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+    .asset-toggle button.active { background: #3498db; color: #fff; }
+    .analyze-btn { display: block; width: 100%; padding: 14px; background-color: #3498db; color: #fff; font-size: 1.1em; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
+    .analyze-btn:hover { background-color: #2980b9; }
+    .analyze-btn:disabled { background-color: #a0aec0; cursor: not-allowed; }
+
+    #status-msg { text-align: center; padding: 15px; font-weight: 600; color: #4a5568; }
+    #error-msg { text-align: center; padding: 15px; font-weight: 600; color: #c53030; background: #fff5f5; border: 1px solid #feb2b2; border-radius: 8px; display: none; }
+
+    .result { display: none; }
+    .price-line { text-align: center; margin-bottom: 15px; }
+    .price-line .price { font-size: 2em; font-weight: 700; color: #1a202c; }
+    .price-line .meta { font-size: 0.9em; color: #718096; }
+
+    .badge { display: block; margin: 0 auto 20px auto; max-width: 320px; text-align: center; padding: 16px; border-radius: 8px; font-size: 1.4em; font-weight: 800; letter-spacing: 0.5px; }
+    .badge.buy { background: #f0fff4; color: #22863a; border: 2px solid #22863a; }
+    .badge.buy-weak { background: #f0fff4; color: #38a169; border: 2px solid #9ae6b4; }
+    .badge.neutral { background: #f7fafc; color: #4a5568; border: 2px solid #cbd5e0; }
+    .badge.sell-weak { background: #fff5f5; color: #c53030; border: 2px solid #feb2b2; }
+    .badge.sell { background: #fff5f5; color: #b91c1c; border: 2px solid #b91c1c; }
+
+    canvas#chart { width: 100%; height: 220px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; }
+
+    .indicators { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 600px) { .indicators { grid-template-columns: 1fr 1fr 1fr; } }
+    .indicator-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; }
+    .indicator-card h4 { margin: 0 0 8px 0; font-size: 0.95em; color: #4a5568; }
+    .indicator-card .value { font-size: 1.1em; font-weight: 700; color: #1a202c; }
+    .indicator-card .verdict { margin-top: 6px; font-size: 0.85em; font-weight: 700; }
+    .verdict.up { color: #22863a; }
+    .verdict.down { color: #c53030; }
+    .verdict.flat { color: #718096; }
+
+    .risk-warning { background-color: #fffbe6; border: 1px solid #f6e05e; border-radius: 8px; padding: 20px; margin-top: 10px; }
+    .risk-warning h4 { color: #d69e2e; text-align: left; font-size: 1.1em; margin-top: 0; }
+    .risk-warning p { font-size: 0.9em; color: #744210; text-align: left; margin: 0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📊 Assistant d'Aide à la Décision</h1>
+    <h2>Analyse technique automatique pour t'aider à savoir s'il est plutôt intéressant d'acheter, de vendre, ou d'attendre.</h2>
+
+    <div class="section">
+        <div class="controls">
+            <div class="asset-toggle">
+                <button id="btn-crypto" class="active" onclick="setAssetType('crypto')">Crypto</button>
+                <button id="btn-forex" onclick="setAssetType('forex')">Forex</button>
+            </div>
+
+            <div id="crypto-fields" class="controls-row">
+                <div class="field">
+                    <label for="crypto-symbol">Paire (Binance)</label>
+                    <select id="crypto-symbol">
+                        <option value="BTCUSDT">BTC / USDT</option>
+                        <option value="ETHUSDT">ETH / USDT</option>
+                        <option value="SOLUSDT">SOL / USDT</option>
+                        <option value="BNBUSDT">BNB / USDT</option>
+                        <option value="XRPUSDT">XRP / USDT</option>
+                        <option value="custom">Autre (saisir)...</option>
+                    </select>
+                </div>
+                <div class="field" id="crypto-custom-field" style="display:none;">
+                    <label for="crypto-custom">Symbole personnalisé</label>
+                    <input type="text" id="crypto-custom" placeholder="ex: DOGEUSDT">
+                </div>
+                <div class="field">
+                    <label for="crypto-interval">Unité de temps</label>
+                    <select id="crypto-interval">
+                        <option value="15m">15 minutes</option>
+                        <option value="1h" selected>1 heure</option>
+                        <option value="4h">4 heures</option>
+                        <option value="1d">1 jour</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="forex-fields" class="controls-row" style="display:none;">
+                <div class="field">
+                    <label for="forex-pair">Paire de devises</label>
+                    <select id="forex-pair">
+                        <option value="EUR-USD">EUR / USD</option>
+                        <option value="GBP-USD">GBP / USD</option>
+                        <option value="USD-JPY">USD / JPY</option>
+                        <option value="USD-CHF">USD / CHF</option>
+                        <option value="AUD-USD">AUD / USD</option>
+                        <option value="USD-CAD">USD / CAD</option>
+                        <option value="NZD-USD">NZD / USD</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Unité de temps</label>
+                    <input type="text" value="1 jour (clôtures journalières)" disabled>
+                </div>
+            </div>
+
+            <button class="analyze-btn" id="analyze-btn" onclick="runAnalysis()">Analyser</button>
+        </div>
+    </div>
+
+    <div id="status-msg"></div>
+    <div id="error-msg"></div>
+
+    <div class="section result" id="result">
+        <div class="price-line">
+            <div class="price" id="current-price"></div>
+            <div class="meta" id="price-meta"></div>
+        </div>
+
+        <div class="badge" id="recommendation-badge"></div>
+
+        <canvas id="chart" width="800" height="220"></canvas>
+
+        <div class="indicators">
+            <div class="indicator-card">
+                <h4>Tendance (SMA 20 / SMA 50)</h4>
+                <div class="value" id="sma-value"></div>
+                <div class="verdict" id="sma-verdict"></div>
+            </div>
+            <div class="indicator-card">
+                <h4>Momentum (RSI 14)</h4>
+                <div class="value" id="rsi-value"></div>
+                <div class="verdict" id="rsi-verdict"></div>
+            </div>
+            <div class="indicator-card">
+                <h4>MACD (12, 26, 9)</h4>
+                <div class="value" id="macd-value"></div>
+                <div class="verdict" id="macd-verdict"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" style="border-bottom:none;">
+        <div class="risk-warning">
+            <h4>Avertissement</h4>
+            <p>Cet outil réalise une analyse technique automatique (moyennes mobiles, RSI, MACD) à partir de données de marché publiques. Il ne s'agit ni d'un conseil en investissement, ni d'une garantie de résultat. Le trading de produits financiers sur marge comporte un niveau de risque élevé. Fais toujours ta propre analyse et n'investis que ce que tu peux te permettre de perdre.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+let assetType = 'crypto';
+
+function setAssetType(type) {
+    assetType = type;
+    document.getElementById('btn-crypto').classList.toggle('active', type === 'crypto');
+    document.getElementById('btn-forex').classList.toggle('active', type === 'forex');
+    document.getElementById('crypto-fields').style.display = type === 'crypto' ? 'flex' : 'none';
+    document.getElementById('forex-fields').style.display = type === 'forex' ? 'flex' : 'none';
+}
+
+document.getElementById('crypto-symbol').addEventListener('change', function() {
+    document.getElementById('crypto-custom-field').style.display = this.value === 'custom' ? 'flex' : 'none';
+});
+
+function sma(values, period, endIndex) {
+    let sum = 0;
+    for (let i = endIndex - period + 1; i <= endIndex; i++) sum += values[i];
+    return sum / period;
+}
+
+function emaSeries(values, period) {
+    const k = 2 / (period + 1);
+    const result = new Array(values.length).fill(null);
+    if (values.length < period) return result;
+    let seed = 0;
+    for (let i = 0; i < period; i++) seed += values[i];
+    result[period - 1] = seed / period;
+    for (let i = period; i < values.length; i++) {
+        result[i] = values[i] * k + result[i - 1] * (1 - k);
+    }
+    return result;
+}
+
+function rsiWilder(values, period) {
+    if (values.length < period + 1) return null;
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+        const delta = values[i] - values[i - 1];
+        if (delta >= 0) gains += delta; else losses -= delta;
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    for (let i = period + 1; i < values.length; i++) {
+        const delta = values[i] - values[i - 1];
+        const gain = delta > 0 ? delta : 0;
+        const loss = delta < 0 ? -delta : 0;
+        avgGain = (avgGain * (period - 1) + gain) / period;
+        avgLoss = (avgLoss * (period - 1) + loss) / period;
+    }
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+}
+
+async function fetchCrypto(symbol, interval) {
+    const url = `https://api.binance.com/api/v3/klines?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&limit=200`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Impossible de récupérer les données pour ce symbole. Vérifie qu'il existe bien sur Binance (ex: BTCUSDT).");
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) throw new Error("Aucune donnée reçue pour ce symbole.");
+    return {
+        closes: data.map(c => parseFloat(c[4])),
+        dates: data.map(c => new Date(c[0])),
+    };
+}
+
+async function fetchForex(pairValue) {
+    const [base, quote] = pairValue.split('-');
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 300);
+    const fmt = d => d.toISOString().slice(0, 10);
+    const url = `https://api.frankfurter.app/${fmt(start)}..${fmt(end)}?from=${base}&to=${quote}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Impossible de récupérer les données pour cette paire de devises.");
+    const data = await res.json();
+    if (!data.rates || Object.keys(data.rates).length === 0) throw new Error("Aucune donnée reçue pour cette paire.");
+    const dateKeys = Object.keys(data.rates).sort();
+    return {
+        closes: dateKeys.map(d => data.rates[d][quote]),
+        dates: dateKeys.map(d => new Date(d)),
+    };
+}
+
+function drawChart(closes, smaShort, smaLong) {
+    const canvas = document.getElementById('chart');
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const all = closes.concat(smaShort.filter(v => v !== null)).concat(smaLong.filter(v => v !== null));
+    const min = Math.min(...all), max = Math.max(...all);
+    const pad = (max - min) * 0.05 || 1;
+    const yMin = min - pad, yMax = max + pad;
+
+    const xStep = w / (closes.length - 1);
+    const yToPixel = v => h - ((v - yMin) / (yMax - yMin)) * h;
+
+    function drawLine(series, color, width) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        let started = false;
+        series.forEach((v, i) => {
+            if (v === null || v === undefined) return;
+            const x = i * xStep, y = yToPixel(v);
+            if (!started) { ctx.moveTo(x, y); started = true; } else { ctx.lineTo(x, y); }
+        });
+        ctx.stroke();
+    }
+
+    drawLine(smaLong, '#f6ad55', 1.5);
+    drawLine(smaShort, '#9f7aea', 1.5);
+    drawLine(closes, '#3498db', 2);
+}
+
+function setBadge(score) {
+    const badge = document.getElementById('recommendation-badge');
+    badge.className = 'badge';
+    if (score >= 2) { badge.classList.add('buy'); badge.textContent = '🟢 ACHETER — signal haussier'; }
+    else if (score === 1) { badge.classList.add('buy-weak'); badge.textContent = '🟢 Achat prudent — signal haussier faible'; }
+    else if (score === 0) { badge.classList.add('neutral'); badge.textContent = '⚪ NEUTRE — attendre une confirmation'; }
+    else if (score === -1) { badge.classList.add('sell-weak'); badge.textContent = '🔴 Vente prudente — signal baissier faible'; }
+    else { badge.classList.add('sell'); badge.textContent = '🔴 VENDRE — signal baissier'; }
+}
+
+async function runAnalysis() {
+    const btn = document.getElementById('analyze-btn');
+    const statusMsg = document.getElementById('status-msg');
+    const errorMsg = document.getElementById('error-msg');
+    const result = document.getElementById('result');
+
+    errorMsg.style.display = 'none';
+    result.style.display = 'none';
+    statusMsg.textContent = 'Analyse en cours...';
+    btn.disabled = true;
+
+    try {
+        let closes, dates, label;
+        if (assetType === 'crypto') {
+            const select = document.getElementById('crypto-symbol');
+            const symbol = select.value === 'custom'
+                ? document.getElementById('crypto-custom').value.trim().toUpperCase()
+                : select.value;
+            if (!symbol) throw new Error("Merci de saisir un symbole.");
+            const interval = document.getElementById('crypto-interval').value;
+            const data = await fetchCrypto(symbol, interval);
+            closes = data.closes; dates = data.dates; label = symbol;
+        } else {
+            const pairValue = document.getElementById('forex-pair').value;
+            const data = await fetchForex(pairValue);
+            closes = data.closes; dates = data.dates; label = pairValue.replace('-', ' / ');
+        }
+
+        if (closes.length < 55) throw new Error("Pas assez de données historiques pour calculer les indicateurs (essaie une autre unité de temps).");
+
+        const lastIndex = closes.length - 1;
+        const price = closes[lastIndex];
+        const sma20 = sma(closes, 20, lastIndex);
+        const sma50 = sma(closes, 50, lastIndex);
+        const rsi = rsiWilder(closes, 14);
+
+        const ema12 = emaSeries(closes, 12);
+        const ema26 = emaSeries(closes, 26);
+        const macdLine = closes.map((_, i) => (ema12[i] !== null && ema26[i] !== null) ? ema12[i] - ema26[i] : null);
+        const macdValid = macdLine.filter(v => v !== null);
+        const signalValid = emaSeries(macdValid, 9);
+        const macdNow = macdValid[macdValid.length - 1];
+        const signalNow = signalValid[signalValid.length - 1];
+        const macdPrev = macdValid[macdValid.length - 2];
+        const signalPrev = signalValid[signalValid.length - 2];
+
+        let score = 0;
+        const smaVerdict = sma20 > sma50 ? 'up' : 'down';
+        score += smaVerdict === 'up' ? 1 : -1;
+
+        let rsiVerdict = 'flat';
+        if (rsi < 30) { rsiVerdict = 'up'; score += 1; }
+        else if (rsi > 70) { rsiVerdict = 'down'; score -= 1; }
+
+        const macdVerdict = macdNow > signalNow ? 'up' : 'down';
+        score += macdVerdict === 'up' ? 1 : -1;
+        const macdCrossed = (macdPrev !== undefined && signalPrev !== undefined) &&
+            (((macdPrev <= signalPrev) && (macdNow > signalNow)) || ((macdPrev >= signalPrev) && (macdNow < signalNow)));
+
+        document.getElementById('current-price').textContent = price.toLocaleString('fr-FR', { maximumFractionDigits: 6 });
+        document.getElementById('price-meta').textContent = `${label} — dernière clôture (${dates[lastIndex].toLocaleString('fr-FR')})`;
+
+        setBadge(score);
+
+        document.getElementById('sma-value').textContent = `SMA20: ${sma20.toFixed(4)} | SMA50: ${sma50.toFixed(4)}`;
+        const smaVerdictEl = document.getElementById('sma-verdict');
+        smaVerdictEl.className = 'verdict ' + smaVerdict;
+        smaVerdictEl.textContent = smaVerdict === 'up' ? 'Tendance haussière' : 'Tendance baissière';
+
+        document.getElementById('rsi-value').textContent = `RSI: ${rsi.toFixed(1)}`;
+        const rsiVerdictEl = document.getElementById('rsi-verdict');
+        rsiVerdictEl.className = 'verdict ' + (rsiVerdict === 'flat' ? 'flat' : rsiVerdict);
+        rsiVerdictEl.textContent = rsi < 30 ? 'Survendu (rebond possible)' : rsi > 70 ? 'Suracheté (repli possible)' : 'Zone neutre';
+
+        document.getElementById('macd-value').textContent = `MACD: ${macdNow.toFixed(4)} | Signal: ${signalNow.toFixed(4)}`;
+        const macdVerdictEl = document.getElementById('macd-verdict');
+        macdVerdictEl.className = 'verdict ' + macdVerdict;
+        macdVerdictEl.textContent = (macdVerdict === 'up' ? 'MACD au-dessus du signal' : 'MACD en dessous du signal') + (macdCrossed ? ' (croisement récent)' : '');
+
+        const smaShortSeries = closes.map((_, i) => i >= 19 ? sma(closes, 20, i) : null);
+        const smaLongSeries = closes.map((_, i) => i >= 49 ? sma(closes, 50, i) : null);
+        drawChart(closes, smaShortSeries, smaLongSeries);
+
+        result.style.display = 'block';
+        statusMsg.textContent = '';
+    } catch (err) {
+        errorMsg.textContent = err.message || "Une erreur est survenue.";
+        errorMsg.style.display = 'block';
+        statusMsg.textContent = '';
+    } finally {
+        btn.disabled = false;
+    }
+}
+</script>
+
+</body>
+</html>

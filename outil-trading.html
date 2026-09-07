@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Application Trading - Programme Accélérateur</title>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f7f6; margin: 0; padding: 0; }
+    .container { max-width: 900px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    h1, h2, h3 { font-weight: 700; line-height: 1.3; color: #1a202c; text-align: center; }
+    h1 { font-size: 2em; margin-bottom: 10px; }
+    h2 { font-size: 1.2em; color: #4a5568; font-weight: 400; margin-bottom: 20px; text-align: center; }
+    h3 { font-size: 1.3em; margin-top: 0; margin-bottom: 6px; }
+    .section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+    .section:last-child { border-bottom: none; }
+    .tool-desc { font-size: 0.95em; color: #718096; text-align: center; margin: 0 0 20px 0; }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+    .tab-btn { flex: 0 0 auto; padding: 10px 16px; border: 2px solid #3498db; background: #fff; color: #3498db; border-radius: 8px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+    .tab-btn.active { background: #3498db; color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .controls { background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+    .controls-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin-bottom: 15px; }
+    .controls-row:last-of-type { margin-bottom: 0; }
+    .field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+    .field label { font-size: 0.85em; font-weight: 600; color: #4a5568; }
+    .field select, .field input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; font-family: inherit; }
+    .asset-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+    .asset-toggle button { flex: 1; padding: 10px; border: 2px solid #3498db; background: #fff; color: #3498db; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+    .asset-toggle button.active { background: #3498db; color: #fff; }
+    .analyze-btn { display: block; width: 100%; padding: 14px; background-color: #3498db; color: #fff; font-size: 1.1em; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; margin-top: 5px; }
+    .analyze-btn:hover { background-color: #2980b9; }
+    .analyze-btn:disabled { background-color: #a0aec0; cursor: not-allowed; }
+
+    #status-msg { text-align: center; padding: 15px; font-weight: 600; color: #4a5568; }
+    .error-box { text-align: center; padding: 15px; font-weight: 600; color: #c53030; background: #fff5f5; border: 1px solid #feb2b2; border-radius: 8px; margin-top: 15px; display: none; }
+
+    .result { display: none; }
+    .price-line { text-align: center; margin-bottom: 15px; }
+    .price-line .price { font-size: 2em; font-weight: 700; color: #1a202c; }
+    .price-line .meta { font-size: 0.9em; color: #718096; }
+
+    .badge { display: block; margin: 0 auto 20px auto; max-width: 320px; text-align: center; padding: 16px; border-radius: 8px; font-size: 1.4em; font-weight: 800; letter-spacing: 0.5px; }
+    .badge.buy { background: #f0fff4; color: #22863a; border: 2px solid #22863a; }
+    .badge.buy-weak { background: #f0fff4; color: #38a169; border: 2px solid #9ae6b4; }
+    .badge.neutral { background: #f7fafc; color: #4a5568; border: 2px solid #cbd5e0; }
+    .badge.sell-weak { background: #fff5f5; color: #c53030; border: 2px solid #feb2b2; }
+    .badge.sell { background: #fff5f5; color: #b91c1c; border: 2px solid #b91c1c; }
+
+    canvas { width: 100%; height: 220px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 15px; margin-bottom: 20px; }
+
+    .indicators { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 15px; }
+    @media (min-width: 600px) { .indicators { grid-template-columns: 1fr 1fr 1fr; } }
+    .indicator-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; }
+    .indicator-card h4 { margin: 0 0 8px 0; font-size: 0.95em; color: #4a5568; }
+    .indicator-card .value { font-size: 1.1em; font-weight: 700; color: #1a202c; }
+    .indicator-card .verdict { margin-top: 6px; font-size: 0.85em; font-weight: 700; }
+    .verdict.up { color: #22863a; }
+    .verdict.down { color: #c53030; }
+    .verdict.flat { color: #718096; }
+
+    .status-badge { text-align: center; padding: 14px; border-radius: 8px; font-weight: 800; font-size: 1.2em; margin: 15px 0; }
+    .status-badge.ok { background: #f0fff4; color: #22863a; border: 2px solid #22863a; }
+    .status-badge.warn { background: #fffbe6; color: #b7791f; border: 2px solid #f6e05e; }
+    .status-badge.bad { background: #fff5f5; color: #b91c1c; border: 2px solid #b91c1c; }
+    .status-badge.progress { background: #f7fafc; color: #4a5568; border: 2px solid #cbd5e0; }
+
+    .progress-outer { background: #e2e8f0; border-radius: 8px; height: 24px; overflow: hidden; margin: 15px 0; }
+    .progress-inner { height: 100%; background: #3498db; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.8em; font-weight: 700; white-space: nowrap; transition: width 0.3s; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+    th, td { padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: left; white-space: nowrap; }
+    th { color: #4a5568; font-size: 0.85em; }
+    .table-wrap { overflow-x: auto; margin-top: 15px; }
+    .pnl-pos { color: #22863a; font-weight: 700; }
+    .pnl-neg { color: #c53030; font-weight: 700; }
+    .delete-btn { background: none; border: none; color: #c53030; cursor: pointer; font-size: 1.1em; padding: 0 6px; }
+    .empty-msg { text-align: center; color: #a0aec0; padding: 20px; font-style: italic; }
+
+    .risk-warning { background-color: #fffbe6; border: 1px solid #f6e05e; border-radius: 8px; padding: 20px; margin-top: 10px; }
+    .risk-warning h4 { color: #d69e2e; text-align: left; font-size: 1.1em; margin-top: 0; }
+    .risk-warning p { font-size: 0.9em; color: #744210; text-align: left; margin: 0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🛠️ Application Trading</h1>
+    <h2>Assistant achat/vente, calculateur de risque, suivi de challenge et journal de trading — tout en un.</h2>
+
+    <div class="tabs">
+        <button class="tab-btn active" id="btn-tab-signal" onclick="showTab('signal')">📊 Achat/Vente</button>
+        <button class="tab-btn" id="btn-tab-risk" onclick="showTab('risk')">🧮 Risque</button>
+        <button class="tab-btn" id="btn-tab-challenge" onclick="showTab('challenge')">🎯 Challenge</button>
+        <button class="tab-btn" id="btn-tab-journal" onclick="showTab('journal')">📓 Journal</button>
+    </div>
+
+    <!-- ===== ONGLET 1 : ASSISTANT ACHAT/VENTE ===== -->
+    <div class="tab-panel active" id="tab-signal">
+        <p class="tool-desc">Analyse technique automatique pour t'aider à savoir s'il est plutôt intéressant d'acheter, de vendre, ou d'attendre.</p>
+
+        <div class="controls">
+            <div class="asset-toggle">
+                <button id="btn-crypto" class="active" onclick="setAssetType('crypto')">Crypto</button>
+                <button id="btn-forex" onclick="setAssetType('forex')">Forex</button>
+            </div>
+
+            <div id="crypto-fields" class="controls-row">
+                <div class="field">
+                    <label for="crypto-symbol">Paire (Binance)</label>
+                    <select id="crypto-symbol">
+                        <option value="BTCUSDT">BTC / USDT</option>
+                        <option value="ETHUSDT">ETH / USDT</option>
+                        <option value="SOLUSDT">SOL / USDT</option>
+                        <option value="BNBUSDT">BNB / USDT</option>
+                        <option value="XRPUSDT">XRP / USDT</option>
+                        <option value="custom">Autre (saisir)...</option>
+                    </select>
+                </div>
+                <div class="field" id="crypto-custom-field" style="display:none;">
+                    <label for="crypto-custom">Symbole personnalisé</label>
+                    <input type="text" id="crypto-custom" placeholder="ex: DOGEUSDT">
+                </div>
+                <div class="field">
+                    <label for="crypto-interval">Unité de temps</label>
+                    <select id="crypto-interval">
+                        <option value="15m">15 minutes</option>
+                        <option value="1h" selected>1 heure</option>
+                        <option value="4h">4 heures</option>
+                        <option value="1d">1 jour</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="forex-fields" class="controls-row" style="display:none;">
+                <div class="field">
+                    <label for="forex-pair">Paire de devises</label>
+                    <select id="forex-pair">
+                        <option value="EUR-USD">EUR / USD</option>
+                        <option value="GBP-USD">GBP / USD</option>
+                        <option value="USD-JPY">USD / JPY</option>
+                        <option value="USD-CHF">USD / CHF</option>
+                        <option value="AUD-USD">AUD / USD</option>
+                        <option value="USD-CAD">USD / CAD</option>
+                        <option value="NZD-USD">NZD / USD</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Unité de temps</label>
+                    <input type="text" value="1 jour (clôtures journalières)" disabled>
+                </div>
+            </div>
+
+            <button class="analyze-btn" id="analyze-btn" onclick="runAnalysis()">Analyser</button>
+        </div>
+
+        <div id="status-msg"></div>
+        <div class="error-box" id="error-msg"></div>
+
+        <div class="result" id="result">
+            <div class="price-line">
+                <div class="price" id="current-price"></div>
+                <div class="meta" id="price-meta"></div>
+            </div>
+
+            <div class="badge" id="recommendation-badge"></div>
+
+            <canvas id="chart" width="800" height="220"></canvas>
+
+            <div class="indicators">
+                <div class="indicator-card">
+                    <h4>Tendance (SMA 20 / SMA 50)</h4>
+                    <div class="value" id="sma-value"></div>
+                    <div class="verdict" id="sma-verdict"></div>
+                </div>
+                <div class="indicator-card">
+                    <h4>Momentum (RSI 14)</h4>
+                    <div class="value" id="rsi-value"></div>
+                    <div class="verdict" id="rsi-verdict"></div>
+                </div>
+                <div class="indicator-card">
+                    <h4>MACD (12, 26, 9)</h4>
+                    <div class="value" id="macd-value"></div>
+                    <div class="verdict" id="macd-verdict"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ONGLET 2 : CALCULATEUR DE RISQUE ===== -->
+    <div class="tab-panel" id="tab-risk">
+        <p class="tool-desc">Calcule la taille de position adaptée à ton risque, pour respecter les règles de drawdown de ton compte.</p>
+
+        <div class="controls">
+            <div class="controls-row">
+                <div class="field">
+                    <label for="risk-balance">Solde du compte ($)</label>
+                    <input type="number" id="risk-balance" value="10000" step="0.01">
+                </div>
+                <div class="field">
+                    <label for="risk-percent">Risque accepté (%)</label>
+                    <input type="number" id="risk-percent" value="1" step="0.1">
+                </div>
+            </div>
+            <div class="controls-row">
+                <div class="field">
+                    <label for="risk-entry">Prix d'entrée</label>
+                    <input type="number" id="risk-entry" step="any" placeholder="ex: 1.0850">
+                </div>
+                <div class="field">
+                    <label for="risk-sl">Prix du Stop Loss</label>
+                    <input type="number" id="risk-sl" step="any" placeholder="ex: 1.0800">
+                </div>
+                <div class="field">
+                    <label for="risk-tp">Prix du Take Profit (optionnel)</label>
+                    <input type="number" id="risk-tp" step="any" placeholder="ex: 1.0950">
+                </div>
+            </div>
+            <button class="analyze-btn" onclick="calculateRisk()">Calculer</button>
+        </div>
+
+        <div class="error-box" id="risk-error"></div>
+
+        <div class="indicators" id="risk-result" style="display:none;"></div>
+    </div>
+
+    <!-- ===== ONGLET 3 : SUIVI CHALLENGE PROP FIRM ===== -->
+    <div class="tab-panel" id="tab-challenge">
+        <p class="tool-desc">Renseigne les paramètres de ton challenge pour suivre ta progression et tes limites de drawdown.</p>
+
+        <div class="controls">
+            <div class="controls-row">
+                <div class="field">
+                    <label for="ch-initial">Solde initial ($)</label>
+                    <input type="number" id="ch-initial" value="10000">
+                </div>
+                <div class="field">
+                    <label for="ch-current">Solde actuel ($)</label>
+                    <input type="number" id="ch-current" value="10000">
+                </div>
+            </div>
+            <div class="controls-row">
+                <div class="field">
+                    <label for="ch-target">Objectif de profit (%)</label>
+                    <input type="number" id="ch-target" value="10">
+                </div>
+                <div class="field">
+                    <label for="ch-maxloss">Perte totale max (%)</label>
+                    <input type="number" id="ch-maxloss" value="10">
+                </div>
+                <div class="field">
+                    <label for="ch-dailyloss">Perte quotidienne max (%)</label>
+                    <input type="number" id="ch-dailyloss" value="5">
+                </div>
+            </div>
+            <div class="controls-row">
+                <div class="field">
+                    <label for="ch-mindays">Jours de trading min. requis</label>
+                    <input type="number" id="ch-mindays" value="10">
+                </div>
+                <div class="field">
+                    <label for="ch-daysdone">Jours de trading effectués</label>
+                    <input type="number" id="ch-daysdone" value="0">
+                </div>
+            </div>
+            <button class="analyze-btn" onclick="updateChallenge()">Mettre à jour</button>
+        </div>
+
+        <div id="challenge-result"></div>
+    </div>
+
+    <!-- ===== ONGLET 4 : JOURNAL DE TRADING ===== -->
+    <div class="tab-panel" id="tab-journal">
+        <p class="tool-desc">Enregistre tes trades pour analyser tes performances dans le temps. Tes données restent uniquement dans ton navigateur.</p>
+
+        <div class="controls">
+            <div class="controls-row">
+                <div class="field">
+                    <label for="j-date">Date</label>
+                    <input type="date" id="j-date">
+                </div>
+                <div class="field">
+                    <label for="j-symbol">Actif</label>
+                    <input type="text" id="j-symbol" placeholder="ex: EURUSD">
+                </div>
+                <div class="field">
+                    <label for="j-direction">Direction</label>
+                    <select id="j-direction">
+                        <option value="achat">Achat</option>
+                        <option value="vente">Vente</option>
+                    </select>
+                </div>
+            </div>
+            <div class="controls-row">
+                <div class="field">
+                    <label for="j-entry">Prix d'entrée</label>
+                    <input type="number" id="j-entry" step="any">
+                </div>
+                <div class="field">
+                    <label for="j-exit">Prix de sortie</label>
+                    <input type="number" id="j-exit" step="any">
+                </div>
+                <div class="field">
+                    <label for="j-size">Taille (unités/lots)</label>
+                    <input type="number" id="j-size" step="any" value="1">
+                </div>
+            </div>
+            <div class="controls-row">
+                <div class="field" style="flex: 3; min-width: 220px;">
+                    <label for="j-notes">Notes (optionnel)</label>
+                    <input type="text" id="j-notes" placeholder="ex: cassure de range confirmée">
+                </div>
+            </div>
+            <button class="analyze-btn" onclick="addTrade()">Ajouter le trade</button>
+        </div>
+
+        <div class="error-box" id="journal-error"></div>
+
+        <div class="indicators" id="journal-stats"></div>
+
+        <canvas id="equity-chart" width="800" height="200"></canvas>
+
+        <div class="table-wrap">
+            <table id="journal-table">
+                <thead>
+                    <tr><th>Date</th><th>Actif</th><th>Sens</th><th>Entrée</th><th>Sortie</th><th>Taille</th><th>P&amp;L</th><th>Notes</th><th></th></tr>
+                </thead>
+                <tbody id="journal-tbody"></tbody>
+            </table>
+            <div class="empty-msg" id="journal-empty">Aucun trade enregistré pour l'instant.</div>
+        </div>
+    </div>
+
+    <div class="section" style="border-bottom:none; margin-top: 10px;">
+        <div class="risk-warning">
+            <h4>Avertissement</h4>
+            <p>Cette application propose des outils d'analyse et de suivi (analyse technique automatique, calculs de risque, suivi de challenge, journal de trading) à partir de données publiques ou saisies par toi-même. Elle ne constitue ni un conseil en investissement, ni une garantie de résultat. Le trading de produits financiers sur marge comporte un niveau de risque élevé. Fais toujours ta propre analyse et n'investis que ce que tu peux te permettre de perdre.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ===================== NAVIGATION ENTRE ONGLETS ===================== */
+function showTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('btn-tab-' + name).classList.add('active');
+    try { localStorage.setItem('pa_active_tab', name); } catch (e) {}
+}
+
+/* ===================== ONGLET 1 : ASSISTANT ACHAT/VENTE ===================== */
+let assetType = 'crypto';
+
+function setAssetType(type) {
+    assetType = type;
+    document.getElementById('btn-crypto').classList.toggle('active', type === 'crypto');
+    document.getElementById('btn-forex').classList.toggle('active', type === 'forex');
+    document.getElementById('crypto-fields').style.display = type === 'crypto' ? 'flex' : 'none';
+    document.getElementById('forex-fields').style.display = type === 'forex' ? 'flex' : 'none';
+}
+
+document.getElementById('crypto-symbol').addEventListener('change', function() {
+    document.getElementById('crypto-custom-field').style.display = this.value === 'custom' ? 'flex' : 'none';
+});
+
+function sma(values, period, endIndex) {
+    let sum = 0;
+    for (let i = endIndex - period + 1; i <= endIndex; i++) sum += values[i];
+    return sum / period;
+}
+
+function emaSeries(values, period) {
+    const k = 2 / (period + 1);
+    const result = new Array(values.length).fill(null);
+    if (values.length < period) return result;
+    let seed = 0;
+    for (let i = 0; i < period; i++) seed += values[i];
+    result[period - 1] = seed / period;
+    for (let i = period; i < values.length; i++) {
+        result[i] = values[i] * k + result[i - 1] * (1 - k);
+    }
+    return result;
+}
+
+function rsiWilder(values, period) {
+    if (values.length < period + 1) return null;
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+        const delta = values[i] - values[i - 1];
+        if (delta >= 0) gains += delta; else losses -= delta;
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    for (let i = period + 1; i < values.length; i++) {
+        const delta = values[i] - values[i - 1];
+        const gain = delta > 0 ? delta : 0;
+        const loss = delta < 0 ? -delta : 0;
+        avgGain = (avgGain * (period - 1) + gain) / period;
+        avgLoss = (avgLoss * (period - 1) + loss) / period;
+    }
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+}
+
+async function fetchCrypto(symbol, interval) {
+    const url = `https://api.binance.com/api/v3/klines?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&limit=200`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Impossible de récupérer les données pour ce symbole. Vérifie qu'il existe bien sur Binance (ex: BTCUSDT).");
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) throw new Error("Aucune donnée reçue pour ce symbole.");
+    return {
+        closes: data.map(c => parseFloat(c[4])),
+        dates: data.map(c => new Date(c[0])),
+    };
+}
+
+async function fetchForex(pairValue) {
+    const [base, quote] = pairValue.split('-');
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 300);
+    const fmt = d => d.toISOString().slice(0, 10);
+    const url = `https://api.frankfurter.app/${fmt(start)}..${fmt(end)}?from=${base}&to=${quote}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Impossible de récupérer les données pour cette paire de devises.");
+    const data = await res.json();
+    if (!data.rates || Object.keys(data.rates).length === 0) throw new Error("Aucune donnée reçue pour cette paire.");
+    const dateKeys = Object.keys(data.rates).sort();
+    return {
+        closes: dateKeys.map(d => data.rates[d][quote]),
+        dates: dateKeys.map(d => new Date(d)),
+    };
+}
+
+function drawChart(closes, smaShort, smaLong) {
+    const canvas = document.getElementById('chart');
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const all = closes.concat(smaShort.filter(v => v !== null)).concat(smaLong.filter(v => v !== null));
+    const min = Math.min(...all), max = Math.max(...all);
+    const pad = (max - min) * 0.05 || 1;
+    const yMin = min - pad, yMax = max + pad;
+
+    const xStep = w / (closes.length - 1);
+    const yToPixel = v => h - ((v - yMin) / (yMax - yMin)) * h;
+
+    function drawLine(series, color, width) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        let started = false;
+        series.forEach((v, i) => {
+            if (v === null || v === undefined) return;
+            const x = i * xStep, y = yToPixel(v);
+            if (!started) { ctx.moveTo(x, y); started = true; } else { ctx.lineTo(x, y); }
+        });
+        ctx.stroke();
+    }
+
+    drawLine(smaLong, '#f6ad55', 1.5);
+    drawLine(smaShort, '#9f7aea', 1.5);
+    drawLine(closes, '#3498db', 2);
+}
+
+function setBadge(score) {
+    const badge = document.getElementById('recommendation-badge');
+    badge.className = 'badge';
+    if (score >= 2) { badge.classList.add('buy'); badge.textContent = '🟢 ACHETER — signal haussier'; }
+    else if (score === 1) { badge.classList.add('buy-weak'); badge.textContent = '🟢 Achat prudent — signal haussier faible'; }
+    else if (score === 0) { badge.classList.add('neutral'); badge.textContent = '⚪ NEUTRE — attendre une confirmation'; }
+    else if (score === -1) { badge.classList.add('sell-weak'); badge.textContent = '🔴 Vente prudente — signal baissier faible'; }
+    else { badge.classList.add('sell'); badge.textContent = '🔴 VENDRE — signal baissier'; }
+}
+
+async function runAnalysis() {
+    const btn = document.getElementById('analyze-btn');
+    const statusMsg = document.getElementById('status-msg');
+    const errorMsg = document.getElementById('error-msg');
+    const result = document.getElementById('result');
+
+    errorMsg.style.display = 'none';
+    result.style.display = 'none';
+    statusMsg.textContent = 'Analyse en cours...';
+    btn.disabled = true;
+
+    try {
+        let closes, dates, label;
+        if (assetType === 'crypto') {
+            const select = document.getElementById('crypto-symbol');
+            const symbol = select.value === 'custom'
+                ? document.getElementById('crypto-custom').value.trim().toUpperCase()
+                : select.value;
+            if (!symbol) throw new Error("Merci de saisir un symbole.");
+            const interval = document.getElementById('crypto-interval').value;
+            const data = await fetchCrypto(symbol, interval);
+            closes = data.closes; dates = data.dates; label = symbol;
+        } else {
+            const pairValue = document.getElementById('forex-pair').value;
+            const data = await fetchForex(pairValue);
+            closes = data.closes; dates = data.dates; label = pairValue.replace('-', ' / ');
+        }
+
+        if (closes.length < 55) throw new Error("Pas assez de données historiques pour calculer les indicateurs (essaie une autre unité de temps).");
+
+        const lastIndex = closes.length - 1;
+        const price = closes[lastIndex];
+        const sma20 = sma(closes, 20, lastIndex);
+        const sma50 = sma(closes, 50, lastIndex);
+        const rsi = rsiWilder(closes, 14);
+
+        const ema12 = emaSeries(closes, 12);
+        const ema26 = emaSeries(closes, 26);
+        const macdLine = closes.map((_, i) => (ema12[i] !== null && ema26[i] !== null) ? ema12[i] - ema26[i] : null);
+        const macdValid = macdLine.filter(v => v !== null);
+        const signalValid = emaSeries(macdValid, 9);
+        const macdNow = macdValid[macdValid.length - 1];
+        const signalNow = signalValid[signalValid.length - 1];
+        const macdPrev = macdValid[macdValid.length - 2];
+        const signalPrev = signalValid[signalValid.length - 2];
+
+        let score = 0;
+        const smaVerdict = sma20 > sma50 ? 'up' : 'down';
+        score += smaVerdict === 'up' ? 1 : -1;
+
+        let rsiVerdict = 'flat';
+        if (rsi < 30) { rsiVerdict = 'up'; score += 1; }
+        else if (rsi > 70) { rsiVerdict = 'down'; score -= 1; }
+
+        const macdVerdict = macdNow > signalNow ? 'up' : 'down';
+        score += macdVerdict === 'up' ? 1 : -1;
+        const macdCrossed = (macdPrev !== undefined && signalPrev !== undefined) &&
+            (((macdPrev <= signalPrev) && (macdNow > signalNow)) || ((macdPrev >= signalPrev) && (macdNow < signalNow)));
+
+        document.getElementById('current-price').textContent = price.toLocaleString('fr-FR', { maximumFractionDigits: 6 });
+        document.getElementById('price-meta').textContent = `${label} — dernière clôture (${dates[lastIndex].toLocaleString('fr-FR')})`;
+
+        setBadge(score);
+
+        document.getElementById('sma-value').textContent = `SMA20: ${sma20.toFixed(4)} | SMA50: ${sma50.toFixed(4)}`;
+        const smaVerdictEl = document.getElementById('sma-verdict');
+        smaVerdictEl.className = 'verdict ' + smaVerdict;
+        smaVerdictEl.textContent = smaVerdict === 'up' ? 'Tendance haussière' : 'Tendance baissière';
+
+        document.getElementById('rsi-value').textContent = `RSI: ${rsi.toFixed(1)}`;
+        const rsiVerdictEl = document.getElementById('rsi-verdict');
+        rsiVerdictEl.className = 'verdict ' + (rsiVerdict === 'flat' ? 'flat' : rsiVerdict);
+        rsiVerdictEl.textContent = rsi < 30 ? 'Survendu (rebond possible)' : rsi > 70 ? 'Suracheté (repli possible)' : 'Zone neutre';
+
+        document.getElementById('macd-value').textContent = `MACD: ${macdNow.toFixed(4)} | Signal: ${signalNow.toFixed(4)}`;
+        const macdVerdictEl = document.getElementById('macd-verdict');
+        macdVerdictEl.className = 'verdict ' + macdVerdict;
+        macdVerdictEl.textContent = (macdVerdict === 'up' ? 'MACD au-dessus du signal' : 'MACD en dessous du signal') + (macdCrossed ? ' (croisement récent)' : '');
+
+        const smaShortSeries = closes.map((_, i) => i >= 19 ? sma(closes, 20, i) : null);
+        const smaLongSeries = closes.map((_, i) => i >= 49 ? sma(closes, 50, i) : null);
+        drawChart(closes, smaShortSeries, smaLongSeries);
+
+        result.style.display = 'block';
+        statusMsg.textContent = '';
+    } catch (err) {
+        errorMsg.textContent = err.message || "Une erreur est survenue.";
+        errorMsg.style.display = 'block';
+        statusMsg.textContent = '';
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+/* ===================== ONGLET 2 : CALCULATEUR DE RISQUE ===================== */
+function calculateRisk() {
+    const errorBox = document.getElementById('risk-error');
+    const resultBox = document.getElementById('risk-result');
+    errorBox.style.display = 'none';
+    resultBox.style.display = 'none';
+
+    const balance = parseFloat(document.getElementById('risk-balance').value);
+    const percent = parseFloat(document.getElementById('risk-percent').value);
+    const entry = parseFloat(document.getElementById('risk-entry').value);
+    const sl = parseFloat(document.getElementById('risk-sl').value);
+    const tpRaw = document.getElementById('risk-tp').value;
+    const tp = tpRaw === '' ? null : parseFloat(tpRaw);
+
+    if ([balance, percent, entry, sl].some(v => Number.isNaN(v))) {
+        errorBox.textContent = "Merci de renseigner le solde, le risque, le prix d'entrée et le stop loss.";
+        errorBox.style.display = 'block';
+        return;
+    }
+    if (entry === sl) {
+        errorBox.textContent = "Le prix d'entrée et le stop loss ne peuvent pas être identiques.";
+        errorBox.style.display = 'block';
+        return;
+    }
+
+    const riskAmount = balance * percent / 100;
+    const distance = Math.abs(entry - sl);
+    const positionSize = riskAmount / distance;
+    const positionValue = positionSize * entry;
+    let rr = null;
+    if (tp !== null && !Number.isNaN(tp)) {
+        rr = Math.abs(tp - entry) / distance;
+    }
+
+    let html = `
+        <div class="indicator-card">
+            <h4>Montant risqué</h4>
+            <div class="value">${riskAmount.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} $</div>
+        </div>
+        <div class="indicator-card">
+            <h4>Taille de position</h4>
+            <div class="value">${positionSize.toLocaleString('fr-FR', { maximumFractionDigits: 4 })} unités</div>
+        </div>
+        <div class="indicator-card">
+            <h4>Valeur totale de la position</h4>
+            <div class="value">${positionValue.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} $</div>
+        </div>`;
+    if (rr !== null) {
+        html += `
+        <div class="indicator-card">
+            <h4>Ratio Risque / Récompense</h4>
+            <div class="value">1 : ${rr.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</div>
+        </div>`;
+    }
+    resultBox.innerHTML = html;
+    resultBox.style.display = 'grid';
+}
+
+/* ===================== ONGLET 3 : SUIVI CHALLENGE PROP FIRM ===================== */
+const CHALLENGE_KEY = 'pa_challenge_settings';
+const challengeFieldIds = ['ch-initial', 'ch-current', 'ch-target', 'ch-maxloss', 'ch-dailyloss', 'ch-mindays', 'ch-daysdone'];
+
+function saveChallengeSettings() {
+    const values = {};
+    challengeFieldIds.forEach(id => { values[id] = document.getElementById(id).value; });
+    try { localStorage.setItem(CHALLENGE_KEY, JSON.stringify(values)); } catch (e) {}
+}
+
+function loadChallengeSettings() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(CHALLENGE_KEY) || 'null');
+        if (saved) challengeFieldIds.forEach(id => { if (saved[id] !== undefined) document.getElementById(id).value = saved[id]; });
+    } catch (e) {}
+}
+
+function updateChallenge() {
+    saveChallengeSettings();
+
+    const initial = parseFloat(document.getElementById('ch-initial').value);
+    const current = parseFloat(document.getElementById('ch-current').value);
+    const targetPct = parseFloat(document.getElementById('ch-target').value);
+    const maxLossPct = parseFloat(document.getElementById('ch-maxloss').value);
+    const dailyLossPct = parseFloat(document.getElementById('ch-dailyloss').value);
+    const minDays = parseFloat(document.getElementById('ch-mindays').value);
+    const daysDone = parseFloat(document.getElementById('ch-daysdone').value);
+
+    const container = document.getElementById('challenge-result');
+    if ([initial, current, targetPct, maxLossPct, dailyLossPct, minDays, daysDone].some(v => Number.isNaN(v)) || initial <= 0) {
+        container.innerHTML = '<div class="error-box" style="display:block;">Merci de remplir tous les champs avec des valeurs valides.</div>';
+        return;
+    }
+
+    const targetAmount = initial * targetPct / 100;
+    const targetBalance = initial + targetAmount;
+    const maxLossAmount = initial * maxLossPct / 100;
+    const floorBalance = initial - maxLossAmount;
+    const dailyLossAmount = initial * dailyLossPct / 100;
+    const progressPct = targetAmount !== 0 ? (current - initial) / targetAmount * 100 : 0;
+    const marginBeforeFloor = current - floorBalance;
+
+    let status, statusText;
+    if (current <= floorBalance) { status = 'bad'; statusText = '❌ Perte maximale dépassée — challenge échoué'; }
+    else if (current >= targetBalance && daysDone >= minDays) { status = 'ok'; statusText = '✅ Objectif atteint et jours minimum validés'; }
+    else if (current >= targetBalance) { status = 'warn'; statusText = `🟡 Objectif de profit atteint, mais il manque ${Math.max(0, minDays - daysDone)} jour(s) de trading`; }
+    else { status = 'progress'; statusText = '🔵 Challenge en cours'; }
+
+    const barPct = Math.max(0, Math.min(100, progressPct));
+
+    container.innerHTML = `
+        <div class="status-badge ${status}">${statusText}</div>
+        <div class="progress-outer">
+            <div class="progress-inner" style="width:${barPct}%;">${progressPct.toFixed(1)}%</div>
+        </div>
+        <div class="indicators">
+            <div class="indicator-card">
+                <h4>Objectif de profit</h4>
+                <div class="value">${targetBalance.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} $</div>
+                <div class="verdict flat">+${targetAmount.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} $ requis</div>
+            </div>
+            <div class="indicator-card">
+                <h4>Seuil de perte maximale</h4>
+                <div class="value">${floorBalance.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} $</div>
+                <div class="verdict ${marginBeforeFloor >= 0 ? 'up' : 'down'}">Marge restante : ${marginBeforeFloor.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} $</div>
+            </div>
+            <div class="indicator-card">
+                <h4>Perte quotidienne max autorisée</h4>
+                <div class="value">${dailyLossAmount.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} $</div>
+                <div class="verdict flat">Jours effectués : ${daysDone} / ${minDays}</div>
+            </div>
+        </div>
+    `;
+}
+
+/* ===================== ONGLET 4 : JOURNAL DE TRADING ===================== */
+const JOURNAL_KEY = 'pa_journal_trades';
+
+function loadTrades() {
+    try { return JSON.parse(localStorage.getItem(JOURNAL_KEY) || '[]'); } catch (e) { return []; }
+}
+
+function saveTrades(trades) {
+    try { localStorage.setItem(JOURNAL_KEY, JSON.stringify(trades)); } catch (e) {}
+}
+
+function addTrade() {
+    const errorBox = document.getElementById('journal-error');
+    errorBox.style.display = 'none';
+
+    const date = document.getElementById('j-date').value;
+    const symbol = document.getElementById('j-symbol').value.trim();
+    const direction = document.getElementById('j-direction').value;
+    const entry = parseFloat(document.getElementById('j-entry').value);
+    const exit = parseFloat(document.getElementById('j-exit').value);
+    const size = parseFloat(document.getElementById('j-size').value);
+    const notes = document.getElementById('j-notes').value.trim();
+
+    if (!symbol || [entry, exit, size].some(v => Number.isNaN(v))) {
+        errorBox.textContent = "Merci de renseigner au minimum l'actif, le prix d'entrée, le prix de sortie et la taille.";
+        errorBox.style.display = 'block';
+        return;
+    }
+
+    const pnl = direction === 'achat' ? (exit - entry) * size : (entry - exit) * size;
+
+    const trades = loadTrades();
+    trades.push({ date: date || new Date().toISOString().slice(0, 10), symbol, direction, entry, exit, size, pnl, notes });
+    saveTrades(trades);
+
+    document.getElementById('j-symbol').value = '';
+    document.getElementById('j-entry').value = '';
+    document.getElementById('j-exit').value = '';
+    document.getElementById('j-size').value = '1';
+    document.getElementById('j-notes').value = '';
+
+    renderJournal();
+}
+
+function deleteTrade(index) {
+    const trades = loadTrades();
+    trades.splice(index, 1);
+    saveTrades(trades);
+    renderJournal();
+}
+
+function drawEquityChart(cumulative) {
+    const canvas = document.getElementById('equity-chart');
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    if (cumulative.length === 0) return;
+
+    const series = [0].concat(cumulative);
+    const min = Math.min(...series), max = Math.max(...series);
+    const pad = (max - min) * 0.1 || 1;
+    const yMin = min - pad, yMax = max + pad;
+    const xStep = series.length > 1 ? w / (series.length - 1) : w;
+    const yToPixel = v => h - ((v - yMin) / (yMax - yMin)) * h;
+
+    const zeroY = yToPixel(0);
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, zeroY);
+    ctx.lineTo(w, zeroY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#3498db';
+    ctx.lineWidth = 2;
+    series.forEach((v, i) => {
+        const x = i * xStep, y = yToPixel(v);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+}
+
+function renderJournal() {
+    const trades = loadTrades();
+    const tbody = document.getElementById('journal-tbody');
+    const emptyMsg = document.getElementById('journal-empty');
+    const statsBox = document.getElementById('journal-stats');
+
+    if (trades.length === 0) {
+        tbody.innerHTML = '';
+        emptyMsg.style.display = 'block';
+        statsBox.innerHTML = '';
+        drawEquityChart([]);
+        return;
+    }
+    emptyMsg.style.display = 'none';
+
+    tbody.innerHTML = trades.map((t, i) => `
+        <tr>
+            <td>${t.date}</td>
+            <td>${t.symbol}</td>
+            <td>${t.direction === 'achat' ? 'Achat' : 'Vente'}</td>
+            <td>${t.entry}</td>
+            <td>${t.exit}</td>
+            <td>${t.size}</td>
+            <td class="${t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg'}">${t.pnl >= 0 ? '+' : ''}${t.pnl.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</td>
+            <td>${t.notes ? t.notes.replace(/</g, '&lt;') : ''}</td>
+            <td><button class="delete-btn" onclick="deleteTrade(${i})" title="Supprimer">✕</button></td>
+        </tr>
+    `).join('');
+
+    const total = trades.length;
+    const wins = trades.filter(t => t.pnl > 0);
+    const losses = trades.filter(t => t.pnl < 0);
+    const winrate = total ? wins.length / total * 100 : 0;
+    const sumWins = wins.reduce((s, t) => s + t.pnl, 0);
+    const sumLosses = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
+    const avgWin = wins.length ? sumWins / wins.length : 0;
+    const avgLoss = losses.length ? -sumLosses / losses.length : 0;
+    const profitFactor = sumLosses > 0 ? sumWins / sumLosses : (sumWins > 0 ? Infinity : 0);
+    const totalPnl = trades.reduce((s, t) => s + t.pnl, 0);
+
+    statsBox.innerHTML = `
+        <div class="indicator-card">
+            <h4>Trades / Winrate</h4>
+            <div class="value">${total} trades — ${winrate.toFixed(1)}%</div>
+        </div>
+        <div class="indicator-card">
+            <h4>Gain moyen / Perte moyenne</h4>
+            <div class="value verdict up">+${avgWin.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</div>
+            <div class="value verdict down">${avgLoss.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</div>
+        </div>
+        <div class="indicator-card">
+            <h4>Profit Factor</h4>
+            <div class="value">${profitFactor === Infinity ? '∞' : profitFactor.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</div>
+        </div>
+        <div class="indicator-card">
+            <h4>P&amp;L Total</h4>
+            <div class="value ${totalPnl >= 0 ? 'pnl-pos' : 'pnl-neg'}">${totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</div>
+        </div>
+    `;
+
+    let cumulative = [];
+    let running = 0;
+    trades.forEach(t => { running += t.pnl; cumulative.push(running); });
+    drawEquityChart(cumulative);
+}
+
+/* ===================== INITIALISATION ===================== */
+window.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('j-date').value = new Date().toISOString().slice(0, 10);
+    loadChallengeSettings();
+    updateChallenge();
+    renderJournal();
+    try {
+        const savedTab = localStorage.getItem('pa_active_tab');
+        if (savedTab) showTab(savedTab);
+    } catch (e) {}
+});
+</script>
+
+</body>
+</html>

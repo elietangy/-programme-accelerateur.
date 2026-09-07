@@ -1,0 +1,27 @@
+{
+  "name": "registre-ecole-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API de gestion administrative et comptable pour une école maternelle et primaire",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "migrate": "node src/db/migrate.js",
+    "seed": "node src/seed.js",
+    "backup": "node scripts/backup.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.1",
+    "pdfkit": "^0.15.0"
+  }
+}

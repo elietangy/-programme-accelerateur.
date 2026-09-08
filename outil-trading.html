@@ -757,6 +757,10 @@ function addTrade() {
     renderJournal();
 }
 
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 function deleteTrade(index) {
     const trades = loadTrades();
     trades.splice(index, 1);
@@ -814,14 +818,14 @@ function renderJournal() {
 
     tbody.innerHTML = trades.map((t, i) => `
         <tr>
-            <td>${t.date}</td>
-            <td>${t.symbol}</td>
+            <td>${escapeHtml(t.date)}</td>
+            <td>${escapeHtml(t.symbol)}</td>
             <td>${t.direction === 'achat' ? 'Achat' : 'Vente'}</td>
             <td>${t.entry}</td>
             <td>${t.exit}</td>
             <td>${t.size}</td>
             <td class="${t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg'}">${t.pnl >= 0 ? '+' : ''}${t.pnl.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</td>
-            <td>${t.notes ? t.notes.replace(/</g, '&lt;') : ''}</td>
+            <td>${t.notes ? escapeHtml(t.notes) : ''}</td>
             <td><button class="delete-btn" onclick="deleteTrade(${i})" title="Supprimer">✕</button></td>
         </tr>
     `).join('');

@@ -12,6 +12,7 @@
     "dev": "node --watch src/server.js",
     "migrate": "node src/db/migrate.js",
     "seed": "node src/seed.js",
+    "start:prod": "node src/db/migrate.js && node src/seed.js && node src/server.js",
     "backup": "node scripts/backup.js"
   },
   "dependencies": {

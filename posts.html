@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes Posts - Opportunités</title>
+<style>
+  :root { --bg:#f4f7f6; --card:#fff; --txt:#1a202c; --muted:#718096; --brand:#2563eb; --ok:#2f9e5b; --bad:#d9433b; --line:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  .wrap { max-width:720px; margin:0 auto; padding:16px; }
+  h1 { text-align:center; font-size:1.5em; margin:10px 0 2px; }
+  h2 { font-size:1.2em; margin:0 0 10px; }
+  .sub { text-align:center; color:var(--muted); margin:0 0 12px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .chip { background:var(--card); border:1px solid var(--line); border-radius:999px; padding:8px 14px; cursor:pointer; font-size:.95em; color:var(--txt); }
+  .chip.active { background:var(--brand); color:#fff; border-color:var(--brand); font-weight:700; }
+  .chip.add { border-style:dashed; color:var(--brand); border-color:var(--brand); }
+  .count { text-align:center; background:var(--brand); color:#fff; border-radius:10px; padding:10px; font-weight:700; margin-bottom:12px; }
+  .nav { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+  .nav button { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:8px 14px; cursor:pointer; font-size:1em; }
+  .date { font-weight:700; text-align:center; flex:1; text-transform:capitalize; }
+  .opts { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px; margin-bottom:16px; font-size:.95em; }
+  .opts label { display:flex; align-items:center; gap:6px; cursor:pointer; }
+  .post, .box { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:14px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+  .tag { display:inline-block; font-size:.75em; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--brand); margin-bottom:6px; }
+  .text { white-space:pre-wrap; margin:0 0 12px; font-family:inherit; font-size:1em; }
+  .copy { width:100%; background:var(--brand); color:#fff; border:0; border-radius:8px; padding:12px; font-size:1.05em; font-weight:700; cursor:pointer; }
+  .copy.done { background:var(--ok) !important; color:#fff !important; border-color:var(--ok) !important; }
+  .copy.sec { background:#fff; color:var(--brand); border:1px solid var(--brand); font-size:.95em; padding:9px; }
+  .copy.dark { background:#1a202c; font-size:1em; margin-bottom:16px; }
+  .img { background:#eef4ff; border:1px dashed var(--brand); border-radius:8px; padding:10px; margin-top:10px; font-size:.9em; }
+  .img b { display:block; margin-bottom:4px; color:var(--brand); }
+  .img p { margin:0 0 8px; white-space:pre-wrap; }
+  label.f { display:block; font-weight:600; margin:12px 0 4px; font-size:.95em; }
+  label.f small { font-weight:400; color:var(--muted); }
+  input[type=text], input[type=date], select, textarea { width:100%; padding:10px; border:1px solid #cbd5e0; border-radius:8px; font:inherit; background:#fff; color:var(--txt); }
+  textarea { min-height:120px; resize:vertical; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:520px) { .row2 { grid-template-columns:1fr; } }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 16px; }
+  .actions button { flex:1; min-width:140px; border-radius:8px; padding:10px; font-size:.95em; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--txt); }
+  .actions .del { color:var(--bad); border-color:var(--bad); }
+  details { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 16px; margin-bottom:14px; }
+  summary { cursor:pointer; font-weight:700; }
+  .hint { color:var(--muted); font-size:.9em; margin:6px 0; }
+  .warn { background:#fffbe6; border:1px solid #f6e05e; border-radius:8px; padding:10px; margin-bottom:12px; font-size:.9em; }
+  .empty { text-align:center; padding:30px 10px; color:var(--muted); }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📅 Mes posts du jour</h1>
+  <p class="sub">Ajoute une opportunité, récupère chaque jour 3 posts et leurs prompts d'image. Tu n'as qu'à copier.</p>
+  <div class="warn" id="storeWarn" hidden>⚠️ Ton navigateur ne peut pas enregistrer les données (navigation privée ?). Ce que tu ajoutes sera perdu en fermant la page.</div>
+  <div class="chips" id="chips"></div>
+
+  <div id="viewMain">
+    <div id="empty" class="empty" hidden>Aucune opportunité pour l'instant.<br>Clique sur « ➕ Ajouter » pour créer la première.</div>
+    <div id="mainBody">
+      <div class="count" id="count"></div>
+      <div class="nav">
+        <button id="prev" aria-label="Jour précédent">◀</button>
+        <div class="date" id="date"></div>
+        <button id="next" aria-label="Jour suivant">▶</button>
+      </div>
+      <div class="opts">
+        <label><input type="checkbox" id="optCount" checked> Compte à rebours</label>
+        <label><input type="checkbox" id="optInfo" checked> Infos pratiques</label>
+        <label><input type="checkbox" id="optCta" checked> Appel à l'action</label>
+        <label><input type="checkbox" id="optTags" checked> Hashtags</label>
+      </div>
+      <button class="copy dark" id="copyAll">📋 Copier les 3 posts</button>
+      <div id="posts"></div>
+
+      <div class="actions">
+        <button id="btnEdit">✏️ Modifier</button>
+        <button id="btnAi">🤖 Améliorer avec une IA</button>
+        <button id="btnDel" class="del">🗑️ Supprimer</button>
+      </div>
+      <div class="box" id="aiBox" hidden>
+        <h2>🤖 Des posts encore meilleurs avec ChatGPT ou Claude</h2>
+        <p class="hint">1. Copie le prompt ci-dessous et colle-le dans ChatGPT, Claude ou Gemini.<br>2. Copie sa réponse (le tableau JSON) et colle-la dans la case.<br>3. Clique sur « Utiliser ces posts ».</p>
+        <button class="copy sec" id="aiCopy">📋 Copier le prompt</button>
+        <label class="f">Réponse de l'IA</label>
+        <textarea id="aiIn" placeholder='[{"theme":"...","texte":"...","image":"..."}, ...]'></textarea>
+        <button class="copy" id="aiUse" style="margin-top:8px">✅ Utiliser ces posts</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewForm" hidden>
+    <div class="box">
+      <h2 id="formTitle">➕ Nouvelle opportunité</h2>
+      <p class="hint">Remplis juste le nom et la description. Les autres champs sont facultatifs et rendent les posts plus précis.</p>
+      <label class="f">Nom *</label>
+      <input type="text" id="fName" placeholder="Ex : Mining Race">
+      <label class="f">Type</label>
+      <select id="fType">
+        <option value="formation">Formation / atelier</option>
+        <option value="produit">Produit / application</option>
+        <option value="service">Service</option>
+        <option value="evenement">Événement</option>
+        <option value="autre">Autre</option>
+      </select>
+      <label class="f">Description * <small>(1 à 2 phrases, puis une ligne par point fort en commençant par « - »)</small></label>
+      <textarea id="fDesc" placeholder="Mon propre IA qui t'aide à ... Il peut ...&#10;- Il répond en français&#10;- Il fonctionne sur téléphone&#10;- Il est gratuit pendant 7 jours"></textarea>
+      <div class="row2">
+        <div><label class="f">Date <small>(s'il y en a une)</small></label><input type="date" id="fDate"></div>
+        <div><label class="f">Fin des inscriptions <small>(facultatif)</small></label><input type="date" id="fClose"></div>
+      </div>
+      <div class="row2">
+        <div><label class="f">Lieu <small>(facultatif)</small></label><input type="text" id="fLieu" placeholder="Ex : Porto-Novo"></div>
+        <div><label class="f">Prix <small>(facultatif)</small></label><input type="text" id="fPrix" placeholder="Ex : 15 000 FCFA"></div>
+      </div>
+      <label class="f">Contact ou lien <small>(mis à la fin des posts)</small></label>
+      <input type="text" id="fContact" placeholder="Ex : WhatsApp 01 96 48 66 26 ou https://monsite.com">
+      <label class="f">Public visé <small>(facultatif)</small></label>
+      <input type="text" id="fPublic" placeholder="Ex : entrepreneurs, étudiants, commerçants">
+      <label class="f">Ambiance des images <small>(facultatif)</small></label>
+      <input type="text" id="fAmb" placeholder="Ex : bleu et orange, ambiance africaine / Bénin">
+      <label class="f">Hashtags <small>(facultatif)</small></label>
+      <input type="text" id="fTags" placeholder="Ex : #IA #Bénin #Innovation">
+      <div class="actions" style="margin-top:16px">
+        <button id="formCancel">Annuler</button>
+        <button id="formSave" class="copy" style="flex:2">✨ Créer mes posts</button>
+      </div>
+    </div>
+  </div>
+
+  <details>
+    <summary>💾 Sauvegarde et transfert</summary>
+    <p class="hint">Tes opportunités sont enregistrées dans ce navigateur, sur cet appareil. Pour les retrouver sur un autre appareil, exporte-les ici puis importe-les là-bas.</p>
+    <div class="actions">
+      <button id="exp">📤 Exporter</button>
+      <button id="imp">📥 Importer</button>
+    </div>
+    <textarea id="bk" placeholder="Les données exportées apparaissent ici. Pour importer, colle-les ici puis clique sur Importer."></textarea>
+  </details>
+</div>
+
+<script>
+const KEY = "mes-opportunites-v1";
+const SCENES = {
+  formation: "dans une salle de formation conviviale où des participants apprennent avec leur téléphone",
+  produit: "avec le produit mis en valeur, utilisé par une personne contente",
+  service: "montrant le service en action et un client satisfait",
+  evenement: "avec une foule joyeuse et une ambiance de fête",
+  autre: "dans une scène positive, moderne et professionnelle"
+};
+const CTA_VERB = { formation: "Pour réserver ta place", evenement: "Pour réserver ta place", produit: "Pour l'essayer", service: "Pour en profiter", autre: "Pour en savoir plus" };
+
+// ---------- Opportunité de départ (modifiable / supprimable) ----------
+function seedFormation() {
+  const OPEN = [
+    ["Accroche", "Tout le monde parle de l'intelligence artificielle.\nTrès peu de personnes savent vraiment s'en servir.\n\nEt toi ?\n\nLe 31 octobre à Porto-Novo, en une matinée, apprends à utiliser l'IA de façon simple et utile pour ton quotidien ou ton activité.", "Une personne béninoise souriante qui regarde son téléphone avec curiosité, avec des symboles lumineux d'intelligence artificielle qui flottent autour de l'écran."],
+    ["Problème", "Tu as déjà ouvert ChatGPT, tapé une question au hasard… et refermé l'onglet sans comprendre ?\n\nCe n'est pas ta faute. Personne ne t'a montré comment faire, étape par étape, avec des exemples de ta vie de tous les jours.\n\nC'est exactement ce que nous allons faire ensemble.", "Une personne perplexe devant son téléphone avec des points d'interrogation au-dessus de la tête, puis une ampoule allumée qui apparaît à côté."],
+    ["Programme", "Ce que tu vas apprendre en 4 heures :\n\n1️⃣ Comprendre l'IA avec des mots simples\n2️⃣ Écrire une bonne consigne (prompt)\n3️⃣ Créer un CV, un post, une affiche, une vidéo courte, un chatbot\n4️⃣ Faire ton exercice sur ton téléphone\n5️⃣ Découvrir des opportunités économiques liées à l'IA\n6️⃣ 30 jours d'accompagnement sur WhatsApp", "Une checklist de six étapes illustrée par six petites icônes : cerveau, clavier, affiche, téléphone, pièces de monnaie, bulle WhatsApp."],
+    ["Méthode", "Notre méthode : VOIR, FAIRE, REFAIRE.\n\n👀 Tu vois la démonstration en direct sur grand écran\n📱 Tu le fais toi-même sur ton téléphone\n🔁 Tu recommences avec de l'aide si tu bloques\n\nC'est ce qui fait la différence entre « j'ai vu une démo » et « je sais le refaire seul ».", "Une salle de formation à Porto-Novo avec un grand écran de démonstration et des participants qui suivent sur leur téléphone, ambiance conviviale."],
+    ["Pour qui", "Cette formation est pour toi si :\n\n✅ Tu es entrepreneur, commerçant, étudiant, salarié ou artisan\n✅ Tu n'as jamais utilisé l'IA, ou très peu\n✅ Tu veux des résultats concrets, pas de la théorie\n\nAucun niveau technique n'est demandé.", "Un groupe varié de personnes béninoises : commerçante, étudiant, artisan, salarié en chemise, qui sourient ensemble."],
+    ["Honnêteté", "Soyons clairs.\n\n❌ Ce n'est pas une formation en ligne\n❌ Ce n'est pas une promesse de revenu garanti\n❌ Ce n'est pas pour les experts en IA\n\n✅ C'est une matinée pratique, en présentiel, pour repartir en sachant vraiment te servir de l'IA.", "Un grand panneau vert avec une coche, à côté d'un petit panneau rouge barré, sur un fond sobre et rassurant."],
+    ["Inclus", "Ce qui est inclus dans ta place :\n\n📘 Un support de formation complet\n📝 Un guide de prompts prêts à l'emploi\n✏️ Un cahier d'exercices\n👥 Un groupe WhatsApp d'entraide\n🎯 30 jours de défis quotidiens, corrigés personnellement\n🎓 Un certificat de participation", "Un cahier, un guide, un certificat et un téléphone avec la bulle WhatsApp, posés sur une table en bois comme un kit de bienvenue."],
+    ["Entrepreneurs", "Commerçant, couturière, artisan, prestataire…\n\nImagine créer tes publications Facebook et WhatsApp, tes affiches et tes messages clients en quelques minutes au lieu de plusieurs heures.\n\nC'est possible avec l'IA. Et ça s'apprend en une matinée.", "Une couturière béninoise dans son atelier qui montre fièrement sur son téléphone une belle affiche pour sa boutique."],
+    ["Étudiants", "Étudiants : l'IA peut t'aider à mieux comprendre tes cours, préparer un exposé ou rédiger un CV propre.\n\nMais encore faut-il savoir lui poser les bonnes questions.\n\nC'est le cœur de la formation du 31 octobre.", "Un étudiant béninois avec des livres et un téléphone, concentré, avec un CV propre et professionnel qui s'affiche à l'écran."],
+    ["Salariés", "Salarié ? L'IA peut te faire gagner des heures chaque semaine : rédaction de courriers, résumés, idées, organisation.\n\nChaque semaine sans l'utiliser est une semaine où tu aurais pu gagner du temps.\n\nCommence le 31 octobre.", "Un employé de bureau détendu devant son ordinateur, avec une horloge et un symbole de temps gagné qui brille à côté."],
+    ["Prompt", "Astuce du jour : une bonne consigne donne une bonne réponse.\n\n❌ « Fais-moi un post »\n✅ « Écris un post Facebook de 5 lignes pour ma boutique de vêtements à Porto-Novo, ton chaleureux, avec un appel à m'écrire sur WhatsApp »\n\nPlus c'est précis, meilleur est le résultat. On pratique tout ça en formation.", "Deux bulles de discussion côte à côte : une petite et vide à gauche, une grande et détaillée à droite, pour illustrer une consigne précise."],
+    ["Astuce", "Astuce : donne un rôle à l'IA.\n\n« Tu es un conseiller qui aide les petits commerçants. Propose-moi 5 idées pour attirer plus de clients cette semaine. »\n\nLe rôle change complètement la qualité de la réponse. Tu apprendras ce genre de techniques le 31 octobre.", "Un robot sympathique portant une casquette de conseiller et des lunettes, qui discute avec un commerçant sur un marché béninois."],
+    ["Futur", "Dans dix ans, l'IA fera partie du quotidien de tout le monde, comme le téléphone portable aujourd'hui.\n\nLa question n'est pas de savoir SI tu vas l'utiliser, mais QUAND tu vas commencer.", "Une ville béninoise futuriste mais chaleureuse au lever du soleil, avec des gens qui utilisent leur téléphone dans la rue."],
+    ["Concurrents", "Tes concurrents s'en servent déjà pour gagner du temps.\nTes enfants l'utilisent pour leurs devoirs.\n\nEt toi, tu regardes de loin ?\n\nUne matinée suffit pour prendre de l'avance.", "Des coureurs sur une piste, avec un coureur qui démarre en avance grâce à une lumière d'énergie bleue sous ses pieds."],
+    ["Suivi", "Une formation d'un jour, ça s'oublie vite.\n\nC'est pourquoi chaque participant reçoit 30 jours de suivi sur WhatsApp : un défi par jour, corrigé personnellement.\n\nTu ne repars pas seul.", "Un téléphone avec une conversation WhatsApp ouverte et un calendrier de 30 jours dont les cases se cochent une à une."],
+    ["Places", "⚠️ Seulement 40 places.\n\nUne avance de 5 000 FCFA bloque ta place. Dès que les 40 places sont prises, les inscriptions ferment, même avant le 27 octobre.", "Une salle de formation avec quarante chaises alignées, dont presque toutes sont déjà occupées, quelques-unes seulement restent libres."],
+    ["Prix", "15 000 FCFA pour :\n\n• 4 heures de formation pratique\n• Tout le matériel (support, guide de prompts, cahier d'exercices)\n• 30 jours de suivi WhatsApp\n• Un certificat de participation\n\nAvance de 5 000 FCFA pour réserver.", "Un billet de banque et des pièces à côté d'un cahier, d'un certificat et d'un téléphone, présentés comme un bon rapport qualité-prix."],
+    ["Question", "Question : qu'aimerais-tu que l'IA fasse pour toi ?\n\n✍️ Écrire tes messages ?\n🎨 Créer tes affiches ?\n🎬 Faire une vidéo ?\n🤖 Répondre à tes clients ?\n\nRéponds en commentaire. On le voit ensemble le 31 octobre.", "Un grand point d'interrogation lumineux entouré de quatre icônes : plume, pinceau, caméra et robot."],
+    ["Démo", "En direct pendant la formation, nous créons ensemble :\n\n📄 Un CV\n📣 Un post Facebook ou WhatsApp\n🖼️ Une affiche\n🎥 Une vidéo courte\n🤖 Un chatbot\n\nPuis c'est ton tour, sur ton téléphone.", "Un grand écran de démonstration qui affiche cinq créations : CV, post, affiche, vidéo et chatbot, devant un public attentif."]
+  ];
+  
+  // Inscriptions fermées, formation pas encore passée
+  const LATE = [
+    ["Inscriptions closes", "🔒 Les inscriptions pour la formation « L'IA Pratique pour Tous » sont closes.\n\nMerci à tous ceux qui ont réservé leur place ! Rendez-vous le samedi 31 octobre, de 9h à 13h, à Porto-Novo, salle de l'ONG ADIL.", "Une porte qui se ferme doucement sur une salle pleine et lumineuse, avec un grand cadenas doré et une atmosphère de réussite."],
+    ["Préparation", "Participants du 31 octobre, pour bien préparer la matinée :\n\n📱 Viens avec ton téléphone chargé\n📶 Prévois de la connexion internet\n📝 Apporte de quoi noter\n⏰ Arrive un peu avant 9h\n\nOn s'occupe du reste !", "Un sac à dos ouvert avec un téléphone en charge, un cahier, un stylo et une montre posés sur une table, vus de dessus."],
+    ["Rappel", "Rappel pour nos participants :\n\n📍 Salle de l'ONG ADIL, Porto-Novo\n🗓️ Samedi 31 octobre, de 9h à 13h\n\nPense à ce que tu veux que l'IA fasse pour toi. On le mettra en pratique ensemble.", "Un calendrier avec la date du 31 entourée en rouge, à côté d'un repère de carte et d'un téléphone."]
+  ];
+  
+  // Jour J
+  const DAYOF = [
+    ["Jour J", "C'est AUJOURD'HUI ! 🎉\n\nFormation « L'IA Pratique pour Tous »\n⏰ 9h – 13h\n📍 Porto-Novo, salle de l'ONG ADIL\n\nViens avec ton téléphone chargé. À tout à l'heure !", "Des participants souriants qui arrivent devant une salle de formation le matin, avec le soleil qui se lève et une ambiance de fête."],
+    ["Jour J", "Dans quelques heures, tu sauras écrire une consigne pour l'IA, créer un post, une affiche et bien plus.\n\nOn commence à 9h précises. Sois à l'heure ! 😉", "Une horloge qui indique 9h avec des rayons de lumière, entourée de petites icônes d'IA, de créativité et de téléphone."],
+    ["Jour J", "La formation est en cours à Porto-Novo ! 🔥\n\nMerci aux participants pour leur énergie. Ce soir, tu sauras te servir de l'IA.", "Une salle pleine de participants concentrés et heureux, qui utilisent leur téléphone pendant que le formateur montre l'écran."]
+  ];
+  
+  // Après la formation
+  const AFTER = [
+    ["Merci", "Merci à tous les participants de « L'IA Pratique pour Tous » ! 🙏\n\nQuelle matinée. Tu as vu, fait et refait. Le plus important commence maintenant : pratiquer chaque jour.", "Un groupe de participants joyeux qui lèvent leurs certificats ensemble dans une salle, ambiance de célébration."],
+    ["Suivi", "Participants : tes 30 jours de défis quotidiens ont commencé sur WhatsApp.\n\n1 défi par jour, 10 minutes, et tu progresses pour de bon. Ne lâche rien !", "Un téléphone qui affiche un défi du jour avec une flamme de motivation et un calendrier de 30 jours."],
+    ["Rappel", "L'IA, c'est comme un muscle : plus on l'utilise, plus on devient bon.\n\nAujourd'hui, essaie une chose : demande à l'IA de t'aider sur une tâche réelle de ta journée.", "Un bras musclé stylisé fait de circuits lumineux, à côté d'un téléphone, pour symboliser l'entraînement quotidien."]
+  ];
+  
+  // Posts spéciaux pour des jours précis, indexés par « jours restants » (remplacent le 1er post du jour)
+  const SPECIAL = {
+    30: ["Lancement", "🚀 NOUVEAU : « L'IA Pratique pour Tous »\n\nUne formation pratique de 4 heures pour apprendre à utiliser l'intelligence artificielle, sans jargon.\n\n📍 Porto-Novo · 🗓️ Samedi 31 octobre, 9h–13h\n\nLes places sont limitées à 40. Ouverture des inscriptions maintenant !", "Une fusée stylisée qui décolle d'un téléphone, avec des symboles d'intelligence artificielle et des confettis, couleurs vives, ambiance de lancement."],
+    14: ["J-14", "Il reste 2 semaines avant la formation et les places partent.\n\nSi tu hésites encore : une matinée, des exemples concrets, 30 jours de suivi. Tu n'as rien à perdre à venir essayer.", "Un sablier avec du sable bleu qui s'écoule et un calendrier à l'arrière-plan, ambiance d'urgence douce."],
+    7: ["J-7", "⏳ Dans une semaine, tu sauras utiliser l'IA.\n\nIl reste quelques places pour le samedi 31 octobre à Porto-Novo. N'attends pas la dernière minute.", "Un calendrier dont il ne reste que sept cases, avec une flèche brillante qui pointe vers la date finale."],
+    5: ["J-5", "Plus que quelques jours pour t'inscrire.\n\nLes inscriptions ferment le 27 octobre, ou dès que les 40 places sont prises. Envoie « OUI » sur WhatsApp pour bloquer la tienne.", "Une main qui tend un ticket d'entrée doré devant un compte à rebours lumineux, dynamique et énergique."],
+    4: ["Dernier jour", "🔔 DERNIER JOUR pour t'inscrire !\n\nLes inscriptions ferment ce soir. Après, ce sera trop tard pour réserver ta place du 31 octobre.", "Une cloche d'alerte dorée qui sonne, avec une horloge en arrière-plan qui approche de minuit, ambiance d'urgence."]
+  };
+  return {
+    id: "seed-formation", name: "L'IA Pratique pour Tous", type: "formation",
+    description: "Une matinée pratique pour apprendre à utiliser l'intelligence artificielle, sans jargon.\n- Comprendre l'IA avec des mots simples\n- Écrire une bonne consigne (prompt)\n- Créer un CV, un post, une affiche, une vidéo courte, un chatbot\n- 30 jours d'accompagnement sur WhatsApp",
+    date: "2026-10-31", close: "2026-10-27", lieu: "Porto-Novo, salle de l'ONG ADIL",
+    prix: "15 000 FCFA (avance de 5 000 FCFA pour réserver)", contact: "WhatsApp 01 96 48 66 26",
+    public: "entrepreneurs, commerçants, étudiants, salariés, artisans", ambiance: "bleu et orange, ambiance africaine / Bénin",
+    tags: "#IA #IntelligenceArtificielle #ChatGPT #PortoNovo #Bénin #Formation",
+    info: "📍 Samedi 31 octobre 2026, de 9h à 13h\nPorto-Novo, salle de l'ONG ADIL\n💰 15 000 FCFA (4h de formation + 30 jours de suivi WhatsApp)\n🔒 Avance de 5 000 FCFA pour bloquer ta place\n👥 40 places seulement\n⏰ Inscriptions jusqu'au 27 octobre",
+    cta: "👉 Pour réserver ta place, envoie « OUI » sur WhatsApp au 01 96 48 66 26.",
+    pools: { open: OPEN, late: LATE, dayof: DAYOF, after: AFTER, special: SPECIAL }
+  };
+}
+
+// ---------- Stockage ----------
+const $ = id => document.getElementById(id);
+let store, offset = 0, editId = null;
+function load() {
+  try {
+    const r = JSON.parse(localStorage.getItem(KEY));
+    if (r && Array.isArray(r.opps)) return r;
+  } catch (e) {}
+  return { opps: [seedFormation()], current: "seed-formation" };
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { $("storeWarn").hidden = false; }
+}
+
+// ---------- Dates ----------
+const dnumISO = s => { const [y, m, d] = s.split("-").map(Number); return Math.floor(Date.UTC(y, m - 1, d) / 86400000); };
+const dnumDate = d => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+const fmtDate = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }); };
+
+// ---------- Génération automatique des posts ----------
+function parseDesc(desc) {
+  const lines = desc.split(/\n/).map(l => l.trim()).filter(Boolean);
+  const isB = l => /^[-•*▪✅]/.test(l);
+  const bullets = lines.filter(isB).map(l => l.replace(/^[-•*▪✅\s]+/, ""));
+  const prose = lines.filter(l => !isB(l)).join(" ");
+  const sents = (prose.replace(/\s+/g, " ").match(/[^.!?]+[.!?]*/g) || []).map(s => s.trim()).filter(Boolean);
+  const points = bullets.length ? bullets : sents.slice(1);
+  return { intro: prose || bullets.join(". "), s1: sents[0] || prose || bullets[0] || "", points: points.slice(0, 8) };
+}
+
+function buildInfo(o) {
+  const L = [];
+  if (o.date) L.push("🗓️ " + fmtDate(o.date));
+  if (o.lieu) L.push("📍 " + o.lieu);
+  if (o.prix) L.push("💰 " + o.prix);
+  if (o.date && o.close) L.push("⏰ Inscriptions jusqu'au " + fmtDate(o.close));
+  return L.join("\n");
+}
+const buildCta = o => o.contact ? "👉 " + (CTA_VERB[o.type] || CTA_VERB.autre) + " : " + o.contact : "";
+function buildTags(o) {
+  if (o.tags && o.tags.trim()) return o.tags.trim();
+  const w = o.name.replace(/[^\p{L}\p{N}\s]/gu, "").split(/\s+/).filter(Boolean).map(x => x[0].toUpperCase() + x.slice(1)).join("");
+  return w ? "#" + w : "";
+}
+
+function genPools(o) {
+  const { intro, s1, points } = parseDesc(o.description);
+  const N = o.name, sc = SCENES[o.type] || SCENES.autre;
+  const img = extra => ("Une image attractive illustrant « " + N + " » " + sc + ". " + (extra || "")).trim();
+  const open = [
+    ["Accroche", "Découvre " + N + " ! 🚀\n\n" + s1, img("Ambiance d'enthousiasme et de découverte.")],
+    ["C'est quoi ?", "💡 " + N + ", c'est quoi ?\n\n" + intro, img()]
+  ];
+  if (points.length >= 2) open.push(["Points forts", "✨ Ce que tu vas aimer avec " + N + " :\n\n" + points.slice(0, 5).map(p => "✅ " + p).join("\n"), img("Une checklist illustrée de petites icônes.")]);
+  points.slice(0, 4).forEach((p, i) => open.push(["Point fort " + (i + 1), p + "\n\nC'est l'un des points forts de " + N + ". 💪", img("Illustre cette idée : " + p + ".")]));
+  if (o.public) open.push(["Pour qui", N + " est fait pour toi si tu es : " + o.public + ".\n\nÇa te ressemble ? Alors ce post est pour toi 👇", img("Un groupe varié de personnes souriantes : " + o.public + ".")]);
+  open.push(
+    ["Question", "Question : qu'est-ce qui t'intéresse le plus dans " + N + " ?\n\nRéponds en commentaire, je lis tout ! 👇", img("Un grand point d'interrogation lumineux entouré d'icônes colorées.")],
+    ["Partage", "Tu connais quelqu'un à qui " + N + " pourrait servir ?\n\nPartage-lui ce post ou identifie-le en commentaire. 🤝", img("Deux amis qui se montrent un téléphone en souriant.")],
+    ["Une question ?", "Tu hésites encore ? C'est normal.\n\nPose-moi tes questions sur " + N + ", je réponds personnellement. 💬", img("Une conversation de messagerie chaleureuse sur un téléphone.")],
+    ["Maintenant", "Le meilleur moment pour commencer, c'est maintenant.\n\n" + N + " peut t'aider à passer à l'action sans attendre. ⏱️", img("Une personne qui fait un premier pas décidé, lumière du matin.")],
+    ["Rappel", "Petit rappel : " + N + ".\n\n" + s1, img("Un rappel visuel simple et lumineux, avec une cloche.")]
+  );
+  const late = [], dayof = [], after = [], special = {};
+  if (o.date) {
+    after.push(
+      ["Merci", "Merci à tous ceux qui ont suivi " + N + " ! 🙏\n\nOn continue ensemble, reste connecté.", img("Une scène de célébration avec des sourires et des mains levées.")],
+      ["Retour", "Merci pour tes retours sur " + N + " ! ❤️\n\nDis-moi ce que tu as préféré en commentaire.", img("Des bulles de commentaires positifs avec des cœurs.")],
+      ["Suite", "La suite arrive bientôt. Reste attentif, de nouvelles opportunités arrivent. 🔔", img("Une porte qui s'ouvre sur une lumière dorée.")]
+    );
+    dayof.push(
+      ["Jour J", "C'est AUJOURD'HUI ! 🎉\n\n" + N + "\n\n" + s1, img("Une ambiance de fête le matin, soleil qui se lève.")],
+      ["Jour J", "Dernières heures avant " + N + ". Tu es prêt ? 🔥", img("Une horloge lumineuse avec des rayons de lumière.")],
+      ["Jour J", N + " est en cours ! Merci à tous pour votre énergie. 🙌", img("Une foule concentrée et heureuse.")]
+    );
+    special[14] = ["J-14", "Plus que 2 semaines avant " + N + ". ⏳\n\n" + s1, img("Un sablier avec du sable bleu qui s'écoule.")];
+    special[7] = ["J-7", "Dans une semaine : " + N + ". 🔥\n\nN'attends pas la dernière minute.", img("Un calendrier dont il ne reste que sept cases.")];
+    const cl = o.close ? dnumISO(o.date) - dnumISO(o.close) : 0;
+    if (cl >= 1) {
+      special[cl] = ["Dernier jour", "🔔 DERNIER JOUR pour " + N + " !\n\nAprès aujourd'hui, ce sera trop tard.", img("Une cloche d'alerte dorée avec une horloge qui approche de minuit.")];
+      late.push(
+        ["Inscriptions closes", "🔒 Les inscriptions pour " + N + " sont closes. Merci à tous ceux qui ont réservé ! Rendez-vous bientôt.", img("Une porte qui se ferme doucement sur une salle lumineuse.")],
+        ["Préparation", "Plus que quelques jours avant " + N + ". Prépare-toi, on s'occupe du reste ! ✅", img("Un sac prêt avec un téléphone, un cahier et une montre.")],
+        ["Rappel", "Rappel pour nos participants : " + N + " approche. ⏰", img("Un calendrier avec la date entourée en rouge.")]
+      );
+    } else {
+      special[1] = ["Demain", "C'est DEMAIN : " + N + " ! 🚀\n\nPrépare-toi.", img("Une fusée prête à décoller, ambiance de lancement.")];
+    }
+  }
+  return { open, late, dayof, after, special };
+}
+
+function makeOpp(f, old) {
+  const o = Object.assign({}, old || {}, f, { id: old ? old.id : "o" + Date.now() });
+  if (!o.date) o.close = "";
+  o.info = buildInfo(o); o.cta = buildCta(o); o.tags = buildTags(o);
+  o.pools = genPools(o);
+  return o;
+}
+
+// ---------- Moteur d'affichage ----------
+const pick = (pool, day, i) => pool[(day * 3 + i) % pool.length];
+const closeLeft = o => o.close ? dnumISO(o.date) - dnumISO(o.close) : 1;
+
+function postsFor(o, left, day) {
+  const P = o.pools; let pool = P.open, open = true;
+  if (o.date) {
+    if (left < 0) { pool = P.after; open = false; }
+    else if (left === 0) { pool = P.dayof; open = false; }
+    else if (left < closeLeft(o)) { pool = P.late; open = false; }
+  }
+  if (!pool || !pool.length) { pool = P.open; open = true; }
+  const res = [0, 1, 2].map(i => pick(pool, day, i));
+  if (o.date && P.special && P.special[left]) res[0] = P.special[left];
+  return { posts: res, open };
+}
+
+function build(p, o, left, open) {
+  let t = p[1];
+  if ($("optCount").checked && o.date && left > 0) t = "⏳ " + (left === 1 ? "C'est demain" : "Plus que " + left + " jours") + " !\n\n" + t;
+  if ($("optInfo").checked && open && o.info) t += "\n\n" + o.info;
+  if ($("optCta").checked && open && o.cta) t += "\n\n" + o.cta;
+  if ($("optTags").checked && o.tags) t += "\n\n" + o.tags;
+  return t;
+}
+const imgPrompt = (p, o) => "Crée une image pour accompagner un post sur les réseaux sociaux. " + p[2] + "\nStyle : illustration moderne et lumineuse, " + (o.ambiance || "couleurs vives et chaleureuses") + ", format carré 1:1. N'écris aucun texte dans l'image.";
+
+async function copy(text, btn, label) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) {
+    const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy"); ta.remove();
+  }
+  const old = btn.textContent; btn.textContent = "✅ " + label; btn.classList.add("done");
+  setTimeout(() => { btn.textContent = old; btn.classList.remove("done"); }, 1500);
+}
+
+const cur = () => store.opps.find(o => o.id === store.current) || store.opps[0] || null;
+
+function renderChips() {
+  const box = $("chips"); box.innerHTML = "";
+  const c = cur();
+  store.opps.forEach(o => {
+    const b = document.createElement("button");
+    b.className = "chip" + (c && o.id === c.id ? " active" : ""); b.textContent = o.name;
+    b.onclick = () => { store.current = o.id; offset = 0; save(); showView("main"); render(); };
+    box.appendChild(b);
+  });
+  const a = document.createElement("button"); a.className = "chip add"; a.textContent = "➕ Ajouter";
+  a.onclick = () => openForm(null); box.appendChild(a);
+}
+
+function render() {
+  renderChips();
+  const o = cur();
+  $("empty").hidden = !!o; $("mainBody").hidden = !o;
+  if (!o) return;
+  store.current = o.id;
+  const d = new Date(); d.setDate(d.getDate() + offset);
+  const day = dnumDate(d);
+  const left = o.date ? dnumISO(o.date) - day : null;
+  $("date").textContent = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const cnt = $("count");
+  if (!o.date) cnt.textContent = "📣 " + o.name;
+  else if (left > 1) cnt.textContent = "⏳ J-" + left + " · " + o.name;
+  else if (left === 1) cnt.textContent = "⏳ C'est DEMAIN · " + o.name;
+  else if (left === 0) cnt.textContent = "🎉 C'est le jour J · " + o.name;
+  else cnt.textContent = "✅ Terminé · ajoute une nouvelle opportunité ou supprime celle-ci";
+  const { posts, open } = postsFor(o, left, day);
+  const box = $("posts"); box.innerHTML = "";
+  const texts = [];
+  ["🌅 Matin", "☀️ Midi", "🌙 Soir"].forEach((slot, i) => {
+    const p = posts[i];
+    const text = build(p, o, left, open); texts.push(text);
+    const card = document.createElement("div"); card.className = "post";
+    const tag = document.createElement("div"); tag.className = "tag"; tag.textContent = slot + " · " + p[0];
+    const pre = document.createElement("pre"); pre.className = "text"; pre.textContent = text;
+    const btn = document.createElement("button"); btn.className = "copy"; btn.textContent = "📋 Copier";
+    btn.onclick = () => copy(text, btn, "Copié !");
+    const prompt = imgPrompt(p, o);
+    const img = document.createElement("div"); img.className = "img";
+    const ib = document.createElement("b"); ib.textContent = "🎨 Prompt pour l'image";
+    const ip = document.createElement("p"); ip.textContent = prompt;
+    const ibtn = document.createElement("button"); ibtn.className = "copy sec"; ibtn.textContent = "🎨 Copier le prompt image";
+    ibtn.onclick = () => copy(prompt, ibtn, "Prompt copié !");
+    img.append(ib, ip, ibtn);
+    card.append(tag, pre, btn, img); box.appendChild(card);
+  });
+  $("copyAll").onclick = () => copy(texts.join("\n\n———\n\n"), $("copyAll"), "Les 3 posts sont copiés !");
+}
+
+// ---------- Vues et formulaire ----------
+function showView(v) { $("viewMain").hidden = v !== "main"; $("viewForm").hidden = v !== "form"; }
+const F = ["Name", "Type", "Desc", "Date", "Close", "Lieu", "Prix", "Contact", "Public", "Amb", "Tags"];
+const FK = { Name: "name", Type: "type", Desc: "description", Date: "date", Close: "close", Lieu: "lieu", Prix: "prix", Contact: "contact", Public: "public", Amb: "ambiance", Tags: "tags" };
+
+function openForm(o) {
+  editId = o ? o.id : null;
+  $("formTitle").textContent = o ? "✏️ Modifier l'opportunité" : "➕ Nouvelle opportunité";
+  F.forEach(k => { $("f" + k).value = o ? (o[FK[k]] || "") : (k === "Type" ? "produit" : ""); });
+  showView("form"); window.scrollTo(0, 0);
+}
+
+$("formCancel").onclick = () => showView("main");
+$("formSave").onclick = () => {
+  const f = {}; F.forEach(k => f[FK[k]] = $("f" + k).value.trim());
+  if (!f.name || !f.description) { alert("Le nom et la description sont obligatoires."); return; }
+  const old = editId ? store.opps.find(x => x.id === editId) : null;
+  if (old && old.id === "seed-formation" && !confirm("Les posts de cette opportunité vont être régénérés automatiquement à partir de la description. Continuer ?")) return;
+  const o = makeOpp(f, old);
+  if (old) store.opps[store.opps.indexOf(old)] = o; else store.opps.push(o);
+  store.current = o.id; offset = 0; save(); showView("main"); render();
+};
+$("btnEdit").onclick = () => { const o = cur(); if (o) openForm(o); };
+$("btnDel").onclick = () => {
+  const o = cur(); if (!o) return;
+  if (!confirm("Supprimer « " + o.name + " » et ses posts ?")) return;
+  store.opps = store.opps.filter(x => x.id !== o.id);
+  store.current = store.opps[0] ? store.opps[0].id : null; offset = 0; save(); render();
+};
+$("prev").onclick = () => { offset--; render(); };
+$("next").onclick = () => { offset++; render(); };
+["optCount", "optInfo", "optCta", "optTags"].forEach(id => $(id).onchange = render);
+
+// ---------- Améliorer avec une IA ----------
+function aiPrompt(o) {
+  const L = ["Tu es un expert en marketing sur les réseaux sociaux (WhatsApp, Facebook, Instagram).",
+    "Écris 20 posts en français, au tutoiement, pour promouvoir : " + o.name + ".",
+    "Description : " + o.description];
+  if (o.public) L.push("Public visé : " + o.public + ".");
+  if (o.lieu) L.push("Lieu : " + o.lieu + ".");
+  if (o.prix) L.push("Prix : " + o.prix + ".");
+  if (o.date) L.push("Date : " + fmtDate(o.date) + ".");
+  L.push("Chaque post doit avoir un angle différent (accroche, bénéfice, objection, question, rappel, point fort...), faire 3 à 8 lignes, avec quelques emojis, et ne contenir aucune promesse de gains garantis ni d'information inventée.",
+    "Pour chaque post, ajoute un prompt (en français) pour générer une image carrée qui l'accompagne, sans aucun texte dans l'image.",
+    'Réponds UNIQUEMENT avec un tableau JSON valide, sans autre texte : [{"theme":"...","texte":"...","image":"..."}, ...]');
+  return L.join("\n");
+}
+$("btnAi").onclick = () => { $("aiBox").hidden = !$("aiBox").hidden; };
+$("aiCopy").onclick = () => { const o = cur(); if (o) copy(aiPrompt(o), $("aiCopy"), "Prompt copié !"); };
+$("aiUse").onclick = () => {
+  const o = cur(); if (!o) return;
+  try {
+    const raw = $("aiIn").value.replace(/```(?:json)?/g, "").trim();
+    const arr = JSON.parse(raw.slice(raw.indexOf("["), raw.lastIndexOf("]") + 1));
+    const posts = arr.filter(x => x && x.texte).map(x => [String(x.theme || "Post"), String(x.texte), String(x.image || o.name)]);
+    if (posts.length < 3) throw new Error("trop peu de posts");
+    o.pools.open = posts; save(); $("aiIn").value = ""; $("aiBox").hidden = true; render();
+    alert(posts.length + " posts importés !");
+  } catch (e) { alert("Je n'ai pas pu lire la réponse. Vérifie que tu as copié tout le tableau JSON, de « [ » jusqu'à « ] »."); }
+};
+
+// ---------- Sauvegarde / transfert ----------
+$("exp").onclick = () => { $("bk").value = JSON.stringify(store); copy($("bk").value, $("exp"), "Exporté et copié !"); };
+$("imp").onclick = () => {
+  try {
+    const r = JSON.parse($("bk").value);
+    if (!r || !Array.isArray(r.opps)) throw 0;
+    r.opps.forEach(o => { if (!store.opps.some(x => x.id === o.id)) store.opps.push(o); });
+    store.current = store.opps[0] ? store.opps[0].id : null; save(); render(); alert("Import terminé.");
+  } catch (e) { alert("Données invalides. Colle ici le texte exporté depuis l'autre appareil."); }
+};
+
+store = load();
+if (!store.current && store.opps[0]) store.current = store.opps[0].id;
+render();
+</script>
+</body>
+</html>

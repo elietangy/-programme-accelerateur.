@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Posts du Jour - Programme Accélérateur</title>
+<style>
+  :root { --bg:#f4f7f6; --card:#fff; --txt:#1a202c; --muted:#718096; --brand:#3498db; --ok:#2f9e5b; --line:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  .wrap { max-width:720px; margin:0 auto; padding:16px; }
+  h1 { text-align:center; font-size:1.6em; margin:10px 0 2px; }
+  .sub { text-align:center; color:var(--muted); margin:0 0 16px; }
+  .nav { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+  .nav button { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:8px 14px; cursor:pointer; font-size:1em; }
+  .date { font-weight:700; text-align:center; flex:1; text-transform:capitalize; }
+  .opts { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px; margin-bottom:16px; font-size:.95em; }
+  .opts label { display:flex; align-items:center; gap:6px; cursor:pointer; }
+  .post { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:14px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+  .tag { display:inline-block; font-size:.75em; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--brand); margin-bottom:6px; }
+  .text { white-space:pre-wrap; margin:0 0 12px; font-family:inherit; font-size:1em; }
+  .copy { width:100%; background:var(--brand); color:#fff; border:0; border-radius:8px; padding:12px; font-size:1.05em; font-weight:700; cursor:pointer; }
+  .copy.done { background:var(--ok); }
+  .all { width:100%; background:#1a202c; color:#fff; border:0; border-radius:8px; padding:12px; font-size:1em; font-weight:700; cursor:pointer; margin-bottom:16px; }
+  .foot { text-align:center; font-size:.85em; color:var(--muted); margin:18px 0; }
+  .foot a { color:var(--brand); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📅 Mes posts du jour</h1>
+  <p class="sub">Trois posts prêts à publier chaque jour. Tu n'as qu'à copier.</p>
+
+  <div class="nav">
+    <button id="prev" aria-label="Jour précédent">◀</button>
+    <div class="date" id="date"></div>
+    <button id="next" aria-label="Jour suivant">▶</button>
+  </div>
+
+  <div class="opts">
+    <label><input type="checkbox" id="optTags" checked> Hashtags</label>
+    <label><input type="checkbox" id="optRisk" checked> Avertissement risque</label>
+    <label><input type="checkbox" id="optCta" checked> Appel à l'action</label>
+  </div>
+
+  <button class="all" id="copyAll">📋 Copier les 3 posts</button>
+  <div id="posts"></div>
+
+  <p class="foot">Le trading comporte un risque de perte en capital. Contenu éducatif, sans garantie de résultats.<br>
+  <a href="index.html">← Retour</a> · <a href="outil-trading.html">Application trading</a></p>
+</div>
+
+<script>
+// ---- Modifie cette liste pour mettre tes propres posts ----
+const CONFIG = {
+  cta: "👉 Rejoins le canal Telegram pour recevoir nos analyses chaque jour.",
+  risk: "⚠️ Le trading comporte un risque de perte en capital. Contenu éducatif, pas un conseil en investissement.",
+  tags: "#trading #propfirm #forex #gestiondurisque #disciplinetrading"
+};
+const SLOTS = ["🌅 Matin", "☀️ Midi", "🌙 Soir"];
+const POSTS = [
+  ["Discipline", "Le trading ne récompense pas le plus intelligent, mais le plus discipliné.\n\nUn plan simple appliqué 100 fois bat une stratégie brillante appliquée 3 fois."],
+  ["Risque", "Règle d'or : ne risque jamais plus de 1% de ton capital par trade.\n\nAvec 1%, il te faut 100 pertes de suite pour tout perdre. Avec 10%, seulement 10."],
+  ["Mindset", "Une perte n'est pas un échec. C'est le coût de l'activité.\n\nUn échec, c'est de sortir de ton plan pour la récupérer."],
+  ["Prop Firm", "Un challenge prop firm n'est pas une course.\n\nLes traders qui valident sont ceux qui respectent le drawdown, pas ceux qui visent l'objectif en 2 jours."],
+  ["Risque", "Avant chaque trade, pose-toi 3 questions :\n\n1️⃣ Où est mon stop ?\n2️⃣ Combien je risque en $ ?\n3️⃣ Quel est mon ratio gain/risque ?\n\nPas de réponse = pas de trade."],
+  ["Psychologie", "Le revenge trading est le raccourci le plus rapide vers un compte à zéro.\n\nAprès une perte : respire, ferme la plateforme, reviens demain."],
+  ["Journal", "Ce que tu ne mesures pas, tu ne peux pas l'améliorer.\n\nNote chaque trade : raison d'entrée, émotion, résultat. En 30 jours, tu verras tes vrais schémas."],
+  ["Éducation", "Le ratio gain/risque de 1:2 te permet d'être rentable même avec 40% de trades gagnants.\n\nCe n'est pas le taux de réussite qui compte, c'est l'espérance."],
+  ["Mindset", "Tu n'as pas besoin de trader tous les jours.\n\nParfois la meilleure position, c'est de rester à l'écart."],
+  ["Prop Firm", "Lis les règles de ta prop firm deux fois :\n\n• drawdown journalier\n• drawdown maximum\n• jours minimum de trading\n\nBeaucoup échouent sur une règle, pas sur la stratégie."],
+  ["Discipline", "Ta routine du matin vaut plus qu'une bonne stratégie :\n\n✅ Regarder le calendrier économique\n✅ Marquer tes niveaux clés\n✅ Définir ton risque du jour\n\nPuis seulement, ouvrir les graphiques."],
+  ["Éducation", "Les news à fort impact (NFP, CPI, taux) peuvent faire sauter ton stop en quelques secondes.\n\nConnais l'agenda avant d'ouvrir une position."],
+  ["Psychologie", "La peur de rater un mouvement (FOMO) coûte plus cher que n'importe quel stop touché.\n\nIl y aura toujours un autre setup demain."],
+  ["Risque", "Le levier amplifie les gains, mais aussi les erreurs.\n\nCommence petit, prouve ta constance, puis seulement augmente la taille."],
+  ["Journal", "Question du jour : combien de tes trades de la semaine respectaient parfaitement ton plan ?\n\nSi la réponse est « pas tous », voilà ton axe de progrès."],
+  ["Mindset", "La constance ennuyeuse bat l'éclat spectaculaire.\n\nPetits gains réguliers, pertes contrôlées. C'est tout le secret."],
+  ["Éducation", "Le support et la résistance ne sont pas des lignes exactes mais des zones.\n\nTrace des zones, pas des traits fins."],
+  ["Prop Firm", "Le compte financé n'est pas la ligne d'arrivée, c'est le début.\n\nLa vraie compétence : le garder, mois après mois."],
+  ["Discipline", "Un stop-loss déplacé « juste un peu » est une décision émotionnelle, pas une stratégie.\n\nPlace-le, et laisse le marché décider."],
+  ["Psychologie", "Après une série de gains, le danger n'est pas le marché, c'est la confiance excessive.\n\nGarde la même taille de position, le même plan."],
+  ["Éducation", "Avant de trader une stratégie en réel, teste-la sur au moins 50 trades en démo ou en backtest.\n\n20 trades ne prouvent rien."],
+  ["Risque", "Le drawdown n'est pas linéaire : perdre 50% demande +100% pour revenir à zéro.\n\nProtéger son capital est la priorité n°1."],
+  ["Mindset", "Compare-toi au trader que tu étais le mois dernier, pas aux captures d'écran des réseaux sociaux.\n\nLes gains affichés ne montrent jamais les pertes."],
+  ["Journal", "Fin de semaine = revue de semaine.\n\n• Meilleur trade ?\n• Pire erreur ?\n• Une seule chose à corriger lundi ?\n\nUne seule, pas dix."],
+  ["Discipline", "Définis ton nombre maximum de trades par jour.\n\nAu-delà, tu ne trades plus : tu joues."],
+  ["Éducation", "La tendance est ton alliée : sur une tendance haussière, cherche des achats sur repli plutôt que de deviner le sommet."],
+  ["Psychologie", "Si tu as besoin que ce trade gagne pour payer tes factures, la taille est trop grande.\n\nTrade avec de l'argent que tu peux te permettre de perdre."],
+  ["Prop Firm", "Astuce challenge : vise la régularité, pas le jackpot.\n\n0,5% à 1% par bonne journée suffit largement à atteindre l'objectif dans les délais."],
+  ["Mindset", "Le meilleur trader n'est pas celui qui a raison le plus souvent, mais celui qui accepte d'avoir tort le plus vite."],
+  ["Discipline", "Résumé du jour :\n\n1. Plan écrit\n2. Risque défini\n3. Stop placé\n4. Journal rempli\n\nSi les 4 sont cochés, ta journée est réussie, quel que soit le résultat."]
+];
+// ----------------------------------------------------------
+
+const $ = id => document.getElementById(id);
+let offset = 0;
+
+function dayNumber(d) { return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000); }
+
+function build(post) {
+  let t = post[1];
+  if ($("optCta").checked) t += "\n\n" + CONFIG.cta;
+  if ($("optRisk").checked) t += "\n\n" + CONFIG.risk;
+  if ($("optTags").checked) t += "\n\n" + CONFIG.tags;
+  return t;
+}
+
+async function copy(text, btn, label) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) {
+    const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy"); ta.remove();
+  }
+  const old = btn.textContent; btn.textContent = "✅ " + label; btn.classList.add("done");
+  setTimeout(() => { btn.textContent = old; btn.classList.remove("done"); }, 1500);
+}
+
+function render() {
+  const d = new Date(); d.setDate(d.getDate() + offset);
+  $("date").textContent = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const start = (dayNumber(d) * 3) % POSTS.length;
+  const box = $("posts"); box.innerHTML = "";
+  const texts = [];
+  SLOTS.forEach((slot, i) => {
+    const p = POSTS[(start + i) % POSTS.length];
+    const text = build(p); texts.push(text);
+    const card = document.createElement("div"); card.className = "post";
+    const tag = document.createElement("div"); tag.className = "tag"; tag.textContent = slot + " · " + p[0];
+    const pre = document.createElement("pre"); pre.className = "text"; pre.textContent = text;
+    const btn = document.createElement("button"); btn.className = "copy"; btn.textContent = "📋 Copier";
+    btn.onclick = () => copy(text, btn, "Copié !");
+    card.append(tag, pre, btn); box.appendChild(card);
+  });
+  $("copyAll").onclick = () => copy(texts.join("\n\n———\n\n"), $("copyAll"), "Les 3 posts sont copiés !");
+}
+
+$("prev").onclick = () => { offset--; render(); };
+$("next").onclick = () => { offset++; render(); };
+["optTags", "optRisk", "optCta"].forEach(id => $(id).onchange = render);
+render();
+</script>
+</body>
+</html>

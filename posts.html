@@ -20,6 +20,9 @@
   .nav { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
   .nav button { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:8px 14px; cursor:pointer; font-size:1em; }
   .date { font-weight:700; text-align:center; flex:1; text-transform:capitalize; }
+  .tabs { display:flex; gap:6px; margin-bottom:12px; }
+  .tab { flex:1; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 4px; cursor:pointer; font-size:.95em; color:var(--txt); }
+  .tab.active { background:#1a202c; color:#fff; border-color:#1a202c; font-weight:700; }
   .opts { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px; margin-bottom:16px; font-size:.95em; }
   .opts label { display:flex; align-items:center; gap:6px; cursor:pointer; }
   .post, .box { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:14px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
@@ -65,6 +68,7 @@
         <div class="date" id="date"></div>
         <button id="next" aria-label="Jour suivant">▶</button>
       </div>
+      <div class="tabs" id="tabs"></div>
       <div class="opts">
         <label><input type="checkbox" id="optCount" checked> Compte à rebours</label>
         <label><input type="checkbox" id="optInfo" checked> Infos pratiques</label>
@@ -343,13 +347,78 @@ function postsFor(o, left, day) {
   return { posts: res, open };
 }
 
-function build(p, o, left, open) {
-  let t = p[1];
-  if ($("optCount").checked && o.date && left > 0) t = "⏳ " + (left === 1 ? "C'est demain" : "Plus que " + left + " jours") + " !\n\n" + t;
-  if ($("optInfo").checked && open && o.info) t += "\n\n" + o.info;
-  if ($("optCta").checked && open && o.cta) t += "\n\n" + o.cta;
-  if ($("optTags").checked && o.tags) t += "\n\n" + o.tags;
+const FMTS = { facebook: "📘 Facebook", whatsapp: "💬 WhatsApp", tiktok: "🎵 TikTok", reel: "🎞️ Reel" };
+const isVideo = f => f === "tiktok" || f === "reel";
+const EMO = /[\p{Extended_Pictographic}️‍]/gu;
+const strip = t => t.replace(/[0-9]️?⃣/g, "").replace(EMO, "").replace(/^[\s•\-*]+/, "").replace(/\s+/g, " ").trim();
+const short = (t, n) => t.length <= n ? t : t.slice(0, n).replace(/\s+\S*$/, "") + "…";
+const paras = p => p[1].split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
+
+function opts(o, left, open) {
+  return {
+    count: $("optCount").checked && o.date && left > 0 ? (left === 1 ? "C'est demain" : "Plus que " + left + " jours") : "",
+    info: $("optInfo").checked && open && o.info ? o.info : "",
+    cta: $("optCta").checked && open && o.cta ? o.cta : "",
+    tags: $("optTags").checked && o.tags ? o.tags : ""
+  };
+}
+
+function buildFacebook(p, o, left, open) {
+  const x = opts(o, left, open); let t = p[1];
+  if (x.count) t = "⏳ " + x.count + " !\n\n" + t;
+  if (x.info) t += "\n\n" + x.info;
+  if (x.cta) t += "\n\n" + x.cta;
+  if (x.tags) t += "\n\n" + x.tags;
   return t;
+}
+
+// WhatsApp : message plus court, titre en gras (*texte*), sans hashtags
+function buildWhatsapp(p, o, left, open) {
+  const x = opts(o, left, open), P = paras(p), first = P[0].split("\n"), out = [];
+  if (x.count) out.push("⏳ *" + x.count + " !*");
+  out.push("*" + first[0].replace(/\*/g, "") + "*" + (first.length > 1 ? "\n" + first.slice(1).join("\n") : ""));
+  P.slice(1).forEach(t => out.push(t));
+  if (x.info) out.push(x.info);
+  if (x.cta) out.push(x.cta);
+  out.push("📲 Transfère ce message à quelqu'un que ça peut aider.");
+  return out.join("\n\n");
+}
+
+// TikTok (script parlé) et Reel (texte à l'écran + musique)
+function buildVideo(kind, p, o, left, open) {
+  const x = opts(o, left, open), isT = kind === "tiktok", P = paras(p);
+  let hook = strip(P[0].split("\n")[0]);
+  const rest = P[0].split("\n").slice(1).concat(...P.slice(1).map(t => t.split("\n")));
+  const all = rest.map(strip).filter(t => t.length > 2);
+  if (hook.endsWith(":") && all.length) hook += " " + all.shift();
+  const sc = all.slice(0, isT ? 4 : 3);
+  const per = isT ? 6 : 4, ctaLen = isT ? 5 : 3;
+  let t = 0; const range = d => { const a = t; t += d; return a + "-" + t + " s"; };
+  const L = [isT ? "🎬 SCRIPT TIKTOK (environ " + (3 + sc.length * per + ctaLen) + " secondes)" : "🎞️ SCRIPT REEL (vertical 9:16, environ " + (3 + sc.length * per + ctaLen) + " secondes)", ""];
+  const lead = x.count ? x.count + " · " : "";
+  L.push("⏱️ " + range(3) + " · ACCROCHE");
+  if (isT) L.push("🗣️ Dis : « " + hook + " »");
+  L.push("📝 Texte à l'écran : « " + short(lead + hook, 60) + " »");
+  sc.forEach((s, i) => {
+    L.push("", "⏱️ " + range(per) + " · " + (isT ? "SCÈNE " : "PLAN ") + (i + 1));
+    if (isT) L.push("🗣️ Dis : « " + s + " »");
+    L.push("📝 Texte à l'écran : « " + short(s, isT ? 45 : 50) + " »");
+  });
+  L.push("", "⏱️ " + range(ctaLen) + " · APPEL À L'ACTION");
+  const cta = x.cta ? strip(x.cta) : "";
+  if (cta) { if (isT) L.push("🗣️ Dis : « " + cta + " »"); L.push("📝 Texte à l'écran : « " + short(cta, 60) + " »"); }
+  if (x.info) L.push("📍 Affiche les infos : " + x.info.split("\n").slice(0, 3).map(strip).join(" · "));
+  L.push("");
+  L.push(isT ? "🎥 Filme-toi face caméra, lumière naturelle, sous-titres activés." : "🎵 Musique : un son tendance au rythme rapide ; fais apparaître le texte à chaque coupe.");
+  L.push("✍️ Légende : " + hook + (x.tags ? "\n" + x.tags.split(/\s+/).slice(0, 5).join(" ") : ""));
+  return L.join("\n");
+}
+
+function build(p, o, left, open) {
+  const f = store.fmt || "facebook";
+  if (f === "whatsapp") return buildWhatsapp(p, o, left, open);
+  if (isVideo(f)) return buildVideo(f, p, o, left, open);
+  return buildFacebook(p, o, left, open);
 }
 const imgPrompt = (p, o) => "Crée une image pour accompagner un post sur les réseaux sociaux. " + p[2] + "\nStyle : illustration moderne et lumineuse, " + (o.ambiance || "couleurs vives et chaleureuses") + ", format carré 1:1. N'écris aucun texte dans l'image.";
 
@@ -378,8 +447,18 @@ function renderChips() {
   a.onclick = () => openForm(null); box.appendChild(a);
 }
 
+function renderTabs() {
+  const box = $("tabs"); box.innerHTML = "";
+  Object.keys(FMTS).forEach(k => {
+    const b = document.createElement("button");
+    b.className = "tab" + ((store.fmt || "facebook") === k ? " active" : ""); b.textContent = FMTS[k];
+    b.onclick = () => { store.fmt = k; save(); render(); };
+    box.appendChild(b);
+  });
+}
+
 function render() {
-  renderChips();
+  renderChips(); renderTabs();
   const o = cur();
   $("empty").hidden = !!o; $("mainBody").hidden = !o;
   if (!o) return;
@@ -403,11 +482,11 @@ function render() {
     const card = document.createElement("div"); card.className = "post";
     const tag = document.createElement("div"); tag.className = "tag"; tag.textContent = slot + " · " + p[0];
     const pre = document.createElement("pre"); pre.className = "text"; pre.textContent = text;
-    const btn = document.createElement("button"); btn.className = "copy"; btn.textContent = "📋 Copier";
+    const btn = document.createElement("button"); btn.className = "copy"; btn.textContent = isVideo(store.fmt) ? "📋 Copier le script" : "📋 Copier";
     btn.onclick = () => copy(text, btn, "Copié !");
     const prompt = imgPrompt(p, o);
     const img = document.createElement("div"); img.className = "img";
-    const ib = document.createElement("b"); ib.textContent = "🎨 Prompt pour l'image";
+    const ib = document.createElement("b"); ib.textContent = isVideo(store.fmt) ? "🎨 Prompt pour la miniature de la vidéo" : "🎨 Prompt pour l'image";
     const ip = document.createElement("p"); ip.textContent = prompt;
     const ibtn = document.createElement("button"); ibtn.className = "copy sec"; ibtn.textContent = "🎨 Copier le prompt image";
     ibtn.onclick = () => copy(prompt, ibtn, "Prompt copié !");

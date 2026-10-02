@@ -59,9 +59,9 @@
 // ---------- À MODIFIER SI BESOIN ----------
 const EVENT = { y: 2026, m: 10, d: 31 };   // date de la formation
 const CLOSE = { y: 2026, m: 10, d: 27 };   // fin des inscriptions
-const INFO = "📍 Samedi 31 octobre 2026, de 9h à 13h\nPorto-Novo, salle de l'ONG ADIL\n💰 15 000 FCFA (4h de formation + 30 jours de suivi WhatsApp)\n🔒 Avance de 5 000 FCFA pour bloquer ta place\n👥 40 places seulement\n⏰ Inscriptions jusqu'au 27 octobre";
+const INFO = "📍 Samedi 31 octobre 2026, de 9h à 13h\nPorto-Novo, salle de l'ONG ADIL\n💰 15 000 FCFA (4h de formation + 30 jours de suivi WhatsApp)\n🔒 Avance de 5 000 FCFA pour bloquer ta place (remboursable jusqu'au 27 octobre)\n👥 40 places seulement\n🎓 Débutants acceptés, aucun prérequis. Viens avec ton smartphone.\n⏰ Inscriptions jusqu'au 27 octobre\n🏢 Organisé par NEXTERA – Porto-Novo, Bénin";
 const CTA = "👉 Pour réserver ta place, envoie « OUI » sur WhatsApp au 01 96 48 66 26.";
-const TAGS = "#IA #IntelligenceArtificielle #ChatGPT #PortoNovo #Bénin #Formation";
+const TAGS = "#IA #IntelligenceArtificielle #IAgénérative #PortoNovo #Bénin #Formation";
 // Ajouté à la fin de chaque prompt image
 const STYLE = "Style : illustration moderne et lumineuse, couleurs vives (bleu et orange), ambiance africaine / Bénin, personnages réalistes et sympathiques, format carré 1:1. N'écris aucun texte dans l'image.";
 // ------------------------------------------
@@ -84,8 +84,8 @@ const OPEN = [
   ["Futur", "Dans dix ans, l'IA fera partie du quotidien de tout le monde, comme le téléphone portable aujourd'hui.\n\nLa question n'est pas de savoir SI tu vas l'utiliser, mais QUAND tu vas commencer.", "Une ville béninoise futuriste mais chaleureuse au lever du soleil, avec des gens qui utilisent leur téléphone dans la rue."],
   ["Concurrents", "Tes concurrents s'en servent déjà pour gagner du temps.\nTes enfants l'utilisent pour leurs devoirs.\n\nEt toi, tu regardes de loin ?\n\nUne matinée suffit pour prendre de l'avance.", "Des coureurs sur une piste, avec un coureur qui démarre en avance grâce à une lumière d'énergie bleue sous ses pieds."],
   ["Suivi", "Une formation d'un jour, ça s'oublie vite.\n\nC'est pourquoi chaque participant reçoit 30 jours de suivi sur WhatsApp : un défi par jour, corrigé personnellement.\n\nTu ne repars pas seul.", "Un téléphone avec une conversation WhatsApp ouverte et un calendrier de 30 jours dont les cases se cochent une à une."],
-  ["Places", "⚠️ Seulement 40 places.\n\nUne avance de 5 000 FCFA bloque ta place. Dès que les 40 places sont prises, les inscriptions ferment, même avant le 27 octobre.", "Une salle de formation avec quarante chaises alignées, dont presque toutes sont déjà occupées, quelques-unes seulement restent libres."],
-  ["Prix", "15 000 FCFA pour :\n\n• 4 heures de formation pratique\n• Tout le matériel (support, guide de prompts, cahier d'exercices)\n• 30 jours de suivi WhatsApp\n• Un certificat de participation\n\nAvance de 5 000 FCFA pour réserver.", "Un billet de banque et des pièces à côté d'un cahier, d'un certificat et d'un téléphone, présentés comme un bon rapport qualité-prix."],
+  ["Places", "⚠️ Seulement 40 places.\n\nUne avance de 5 000 FCFA (remboursable jusqu'au 27 octobre) bloque ta place. Dès que les 40 places sont prises, les inscriptions ferment, même avant le 27 octobre.", "Une salle de formation avec quarante chaises alignées, dont presque toutes sont déjà occupées, quelques-unes seulement restent libres."],
+  ["Prix", "15 000 FCFA pour :\n\n• 4 heures de formation pratique\n• Tout le matériel (support, guide de prompts, cahier d'exercices)\n• 30 jours de suivi WhatsApp\n• Un certificat de participation\n\nAvance de 5 000 FCFA pour réserver (remboursable jusqu'au 27 octobre).", "Un billet de banque et des pièces à côté d'un cahier, d'un certificat et d'un téléphone, présentés comme un bon rapport qualité-prix."],
   ["Question", "Question : qu'aimerais-tu que l'IA fasse pour toi ?\n\n✍️ Écrire tes messages ?\n🎨 Créer tes affiches ?\n🎬 Faire une vidéo ?\n🤖 Répondre à tes clients ?\n\nRéponds en commentaire. On le voit ensemble le 31 octobre.", "Un grand point d'interrogation lumineux entouré de quatre icônes : plume, pinceau, caméra et robot."],
   ["Démo", "En direct pendant la formation, nous créons ensemble :\n\n📄 Un CV\n📣 Un post Facebook ou WhatsApp\n🖼️ Une affiche\n🎥 Une vidéo courte\n🤖 Un chatbot\n\nPuis c'est ton tour, sur ton téléphone.", "Un grand écran de démonstration qui affiche cinq créations : CV, post, affiche, vidéo et chatbot, devant un public attentif."]
 ];

@@ -142,6 +142,7 @@
 
 <script>
 const KEY = "mes-opportunites-v1";
+const SEED_V = 2;
 const SCENES = {
   formation: "dans une salle de formation conviviale où des participants apprennent avec leur téléphone",
   produit: "avec le produit mis en valeur, utilisé par une personne contente",
@@ -205,13 +206,13 @@ function seedFormation() {
     4: ["Dernier jour", "🔔 DERNIER JOUR pour t'inscrire !\n\nLes inscriptions ferment ce soir. Après, ce sera trop tard pour réserver ta place du 31 octobre.", "Une cloche d'alerte dorée qui sonne, avec une horloge en arrière-plan qui approche de minuit, ambiance d'urgence."]
   };
   return {
-    id: "seed-formation", name: "L'IA Pratique pour Tous", type: "formation",
+    id: "seed-formation", v: 2, name: "L'IA Pratique pour Tous", type: "formation",
     description: "Une matinée pratique pour apprendre à utiliser l'intelligence artificielle, sans jargon.\n- Comprendre l'IA avec des mots simples\n- Écrire une bonne consigne (prompt)\n- Créer un CV, un post, une affiche, une vidéo courte, un chatbot\n- 30 jours d'accompagnement sur WhatsApp",
     date: "2026-10-31", close: "2026-10-27", lieu: "Porto-Novo, salle de l'ONG ADIL",
     prix: "15 000 FCFA (avance de 5 000 FCFA pour réserver)", contact: "WhatsApp 01 96 48 66 26",
     public: "entrepreneurs, commerçants, étudiants, salariés, artisans", ambiance: "bleu et orange, ambiance africaine / Bénin",
-    tags: "#IA #IntelligenceArtificielle #ChatGPT #PortoNovo #Bénin #Formation",
-    info: "📍 Samedi 31 octobre 2026, de 9h à 13h\nPorto-Novo, salle de l'ONG ADIL\n💰 15 000 FCFA (4h de formation + 30 jours de suivi WhatsApp)\n🔒 Avance de 5 000 FCFA pour bloquer ta place\n👥 40 places seulement\n⏰ Inscriptions jusqu'au 27 octobre",
+    tags: "#IA #IntelligenceArtificielle #IAgénérative #PortoNovo #Bénin #Formation",
+    info: "📍 Samedi 31 octobre 2026, de 9h à 13h\nPorto-Novo, salle de l'ONG ADIL\n💰 15 000 FCFA (4h de formation + 30 jours de suivi WhatsApp)\n🔒 Avance de 5 000 FCFA pour bloquer ta place\n👥 40 places seulement\n🎓 Débutants acceptés, aucun prérequis. Viens avec ton smartphone.\n⏰ Inscriptions jusqu'au 27 octobre",
     cta: "👉 Pour réserver ta place, envoie « OUI » sur WhatsApp au 01 96 48 66 26.",
     pools: { open: OPEN, late: LATE, dayof: DAYOF, after: AFTER, special: SPECIAL }
   };
@@ -223,7 +224,12 @@ let store, offset = 0, editId = null;
 function load() {
   try {
     const r = JSON.parse(localStorage.getItem(KEY));
-    if (r && Array.isArray(r.opps)) return r;
+    if (r && Array.isArray(r.opps)) {
+      // met à jour l'opportunité de départ si elle n'a jamais été modifiée
+      const i = r.opps.findIndex(o => o.id === "seed-formation" && !o.edited && (o.v || 1) < SEED_V);
+      if (i >= 0) r.opps[i] = seedFormation();
+      return r;
+    }
   } catch (e) {}
   return { opps: [seedFormation()], current: "seed-formation" };
 }
@@ -310,7 +316,7 @@ function genPools(o) {
 }
 
 function makeOpp(f, old) {
-  const o = Object.assign({}, old || {}, f, { id: old ? old.id : "o" + Date.now() });
+  const o = Object.assign({}, old || {}, f, { id: old ? old.id : "o" + Date.now(), edited: true });
   if (!o.date) o.close = "";
   o.info = buildInfo(o); o.cta = buildCta(o); o.tags = buildTags(o);
   o.pools = genPools(o);

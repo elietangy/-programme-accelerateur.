@@ -114,6 +114,8 @@
         <div><label class="f">Lieu <small>(facultatif)</small></label><input type="text" id="fLieu" placeholder="Ex : Porto-Novo"></div>
         <div><label class="f">Prix <small>(facultatif)</small></label><input type="text" id="fPrix" placeholder="Ex : 15 000 FCFA"></div>
       </div>
+      <label class="f">Organisé par <small>(facultatif)</small></label>
+      <input type="text" id="fOrg" placeholder="Ex : NEXTERA">
       <label class="f">Contact ou lien <small>(mis à la fin des posts)</small></label>
       <input type="text" id="fContact" placeholder="Ex : WhatsApp 01 96 48 66 26 ou https://monsite.com">
       <label class="f">Public visé <small>(facultatif)</small></label>
@@ -142,7 +144,7 @@
 
 <script>
 const KEY = "mes-opportunites-v1";
-const SEED_V = 3;
+const SEED_V = 4;
 const SCENES = {
   formation: "dans une salle de formation conviviale où des participants apprennent avec leur téléphone",
   produit: "avec le produit mis en valeur, utilisé par une personne contente",
@@ -206,10 +208,10 @@ function seedFormation() {
     4: ["Dernier jour", "🔔 DERNIER JOUR pour t'inscrire !\n\nLes inscriptions ferment ce soir. Après, ce sera trop tard pour réserver ta place du 31 octobre.", "Une cloche d'alerte dorée qui sonne, avec une horloge en arrière-plan qui approche de minuit, ambiance d'urgence."]
   };
   return {
-    id: "seed-formation", v: 3, name: "L'IA Pratique pour Tous", type: "formation",
+    id: "seed-formation", v: 4, name: "L'IA Pratique pour Tous", type: "formation",
     description: "Une matinée pratique pour apprendre à utiliser l'intelligence artificielle, sans jargon.\n- Comprendre l'IA avec des mots simples\n- Écrire une bonne consigne (prompt)\n- Créer un CV, un post, une affiche, une vidéo courte, un chatbot\n- 30 jours d'accompagnement sur WhatsApp",
     date: "2026-10-31", close: "2026-10-27", lieu: "Porto-Novo, salle de l'ONG ADIL",
-    prix: "15 000 FCFA (avance de 5 000 FCFA remboursable jusqu'au 27 octobre)", contact: "WhatsApp 01 96 48 66 26",
+    prix: "15 000 FCFA (avance de 5 000 FCFA remboursable jusqu'au 27 octobre)", contact: "WhatsApp 01 96 48 66 26", organisateur: "NEXTERA",
     public: "entrepreneurs, commerçants, étudiants, salariés, artisans", ambiance: "bleu et orange, ambiance africaine / Bénin",
     tags: "#IA #IntelligenceArtificielle #IAgénérative #PortoNovo #Bénin #Formation",
     info: "📍 Samedi 31 octobre 2026, de 9h à 13h\nPorto-Novo, salle de l'ONG ADIL\n💰 15 000 FCFA (4h de formation + 30 jours de suivi WhatsApp)\n🔒 Avance de 5 000 FCFA pour bloquer ta place (remboursable jusqu'au 27 octobre)\n👥 40 places seulement\n🎓 Débutants acceptés, aucun prérequis. Viens avec ton smartphone.\n⏰ Inscriptions jusqu'au 27 octobre\n🏢 Organisé par NEXTERA – Porto-Novo, Bénin",
@@ -259,6 +261,7 @@ function buildInfo(o) {
   if (o.lieu) L.push("📍 " + o.lieu);
   if (o.prix) L.push("💰 " + o.prix);
   if (o.date && o.close) L.push("⏰ Inscriptions jusqu'au " + fmtDate(o.close));
+  if (o.organisateur) L.push("🏢 Organisé par " + o.organisateur);
   return L.join("\n");
 }
 const buildCta = o => o.contact ? "👉 " + (CTA_VERB[o.type] || CTA_VERB.autre) + " : " + o.contact : "";
@@ -416,8 +419,8 @@ function render() {
 
 // ---------- Vues et formulaire ----------
 function showView(v) { $("viewMain").hidden = v !== "main"; $("viewForm").hidden = v !== "form"; }
-const F = ["Name", "Type", "Desc", "Date", "Close", "Lieu", "Prix", "Contact", "Public", "Amb", "Tags"];
-const FK = { Name: "name", Type: "type", Desc: "description", Date: "date", Close: "close", Lieu: "lieu", Prix: "prix", Contact: "contact", Public: "public", Amb: "ambiance", Tags: "tags" };
+const F = ["Name", "Type", "Desc", "Date", "Close", "Lieu", "Prix", "Org", "Contact", "Public", "Amb", "Tags"];
+const FK = { Name: "name", Type: "type", Desc: "description", Date: "date", Close: "close", Lieu: "lieu", Prix: "prix", Org: "organisateur", Contact: "contact", Public: "public", Amb: "ambiance", Tags: "tags" };
 
 function openForm(o) {
   editId = o ? o.id : null;

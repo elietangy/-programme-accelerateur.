@@ -122,7 +122,7 @@
       <label class="f">Organisé par <small>(facultatif)</small></label>
       <input type="text" id="fOrg" placeholder="Ex : NEXTERA">
       <label class="f">Contact ou lien <small>(mis à la fin des posts)</small></label>
-      <input type="text" id="fContact" placeholder="Ex : WhatsApp 01 96 48 66 26 ou https://monsite.com">
+      <input type="text" id="fContact" placeholder="Ex : https://monsite.com (les vidéos diront « lien dans ma bio »)">
       <label class="f">Public visé <small>(facultatif)</small></label>
       <input type="text" id="fPublic" placeholder="Ex : entrepreneurs, étudiants, commerçants">
       <label class="f">Ambiance des images <small>(facultatif)</small></label>
@@ -149,7 +149,7 @@
 
 <script>
 const KEY = "mes-opportunites-v1";
-const SEED_V = 4;
+const SEED_V = 5;
 const SCENES = {
   formation: "dans une salle de formation conviviale où des participants apprennent avec leur téléphone",
   produit: "avec le produit mis en valeur, utilisé par une personne contente",
@@ -162,65 +162,64 @@ const CTA_VERB = { formation: "Pour réserver ta place", evenement: "Pour réser
 // ---------- Opportunité de départ (modifiable / supprimable) ----------
 function seedFormation() {
   const OPEN = [
-    ["Accroche", "Tout le monde parle de l'intelligence artificielle.\nTrès peu de personnes savent vraiment s'en servir.\n\nEt toi ?\n\nLe 31 octobre à Porto-Novo, en une matinée, apprends à utiliser l'IA de façon simple et utile pour ton quotidien ou ton activité.", "Une personne béninoise souriante qui regarde son téléphone avec curiosité, avec des symboles lumineux d'intelligence artificielle qui flottent autour de l'écran."],
-    ["Problème", "Tu as déjà ouvert ChatGPT, tapé une question au hasard… et refermé l'onglet sans comprendre ?\n\nCe n'est pas ta faute. Personne ne t'a montré comment faire, étape par étape, avec des exemples de ta vie de tous les jours.\n\nC'est exactement ce que nous allons faire ensemble.", "Une personne perplexe devant son téléphone avec des points d'interrogation au-dessus de la tête, puis une ampoule allumée qui apparaît à côté."],
-    ["Programme", "Ce que tu vas apprendre en 4 heures :\n\n1️⃣ Comprendre l'IA avec des mots simples\n2️⃣ Écrire une bonne consigne (prompt)\n3️⃣ Créer un CV, un post, une affiche, une vidéo courte, un chatbot\n4️⃣ Faire ton exercice sur ton téléphone\n5️⃣ Découvrir des opportunités économiques liées à l'IA\n6️⃣ 30 jours d'accompagnement sur WhatsApp", "Une checklist de six étapes illustrée par six petites icônes : cerveau, clavier, affiche, téléphone, pièces de monnaie, bulle WhatsApp."],
-    ["Méthode", "Notre méthode : VOIR, FAIRE, REFAIRE.\n\n👀 Tu vois la démonstration en direct sur grand écran\n📱 Tu le fais toi-même sur ton téléphone\n🔁 Tu recommences avec de l'aide si tu bloques\n\nC'est ce qui fait la différence entre « j'ai vu une démo » et « je sais le refaire seul ».", "Une salle de formation à Porto-Novo avec un grand écran de démonstration et des participants qui suivent sur leur téléphone, ambiance conviviale."],
-    ["Pour qui", "Cette formation est pour toi si :\n\n✅ Tu es entrepreneur, commerçant, étudiant, salarié ou artisan\n✅ Tu n'as jamais utilisé l'IA, ou très peu\n✅ Tu veux des résultats concrets, pas de la théorie\n\nAucun niveau technique n'est demandé.", "Un groupe varié de personnes béninoises : commerçante, étudiant, artisan, salarié en chemise, qui sourient ensemble."],
-    ["Honnêteté", "Soyons clairs.\n\n❌ Ce n'est pas une formation en ligne\n❌ Ce n'est pas une promesse de revenu garanti\n❌ Ce n'est pas pour les experts en IA\n\n✅ C'est une matinée pratique, en présentiel, pour repartir en sachant vraiment te servir de l'IA.", "Un grand panneau vert avec une coche, à côté d'un petit panneau rouge barré, sur un fond sobre et rassurant."],
-    ["Inclus", "Ce qui est inclus dans ta place :\n\n📘 Un support de formation complet\n📝 Un guide de prompts prêts à l'emploi\n✏️ Un cahier d'exercices\n👥 Un groupe WhatsApp d'entraide\n🎯 30 jours de défis quotidiens, corrigés personnellement\n🎓 Un certificat de participation", "Un cahier, un guide, un certificat et un téléphone avec la bulle WhatsApp, posés sur une table en bois comme un kit de bienvenue."],
-    ["Entrepreneurs", "Commerçant, couturière, artisan, prestataire…\n\nImagine créer tes publications Facebook et WhatsApp, tes affiches et tes messages clients en quelques minutes au lieu de plusieurs heures.\n\nC'est possible avec l'IA. Et ça s'apprend en une matinée.", "Une couturière béninoise dans son atelier qui montre fièrement sur son téléphone une belle affiche pour sa boutique."],
-    ["Étudiants", "Étudiants : l'IA peut t'aider à mieux comprendre tes cours, préparer un exposé ou rédiger un CV propre.\n\nMais encore faut-il savoir lui poser les bonnes questions.\n\nC'est le cœur de la formation du 31 octobre.", "Un étudiant béninois avec des livres et un téléphone, concentré, avec un CV propre et professionnel qui s'affiche à l'écran."],
-    ["Salariés", "Salarié ? L'IA peut te faire gagner des heures chaque semaine : rédaction de courriers, résumés, idées, organisation.\n\nChaque semaine sans l'utiliser est une semaine où tu aurais pu gagner du temps.\n\nCommence le 31 octobre.", "Un employé de bureau détendu devant son ordinateur, avec une horloge et un symbole de temps gagné qui brille à côté."],
-    ["Prompt", "Astuce du jour : une bonne consigne donne une bonne réponse.\n\n❌ « Fais-moi un post »\n✅ « Écris un post Facebook de 5 lignes pour ma boutique de vêtements à Porto-Novo, ton chaleureux, avec un appel à m'écrire sur WhatsApp »\n\nPlus c'est précis, meilleur est le résultat. On pratique tout ça en formation.", "Deux bulles de discussion côte à côte : une petite et vide à gauche, une grande et détaillée à droite, pour illustrer une consigne précise."],
-    ["Astuce", "Astuce : donne un rôle à l'IA.\n\n« Tu es un conseiller qui aide les petits commerçants. Propose-moi 5 idées pour attirer plus de clients cette semaine. »\n\nLe rôle change complètement la qualité de la réponse. Tu apprendras ce genre de techniques le 31 octobre.", "Un robot sympathique portant une casquette de conseiller et des lunettes, qui discute avec un commerçant sur un marché béninois."],
-    ["Futur", "Dans dix ans, l'IA fera partie du quotidien de tout le monde, comme le téléphone portable aujourd'hui.\n\nLa question n'est pas de savoir SI tu vas l'utiliser, mais QUAND tu vas commencer.", "Une ville béninoise futuriste mais chaleureuse au lever du soleil, avec des gens qui utilisent leur téléphone dans la rue."],
-    ["Concurrents", "Tes concurrents s'en servent déjà pour gagner du temps.\nTes enfants l'utilisent pour leurs devoirs.\n\nEt toi, tu regardes de loin ?\n\nUne matinée suffit pour prendre de l'avance.", "Des coureurs sur une piste, avec un coureur qui démarre en avance grâce à une lumière d'énergie bleue sous ses pieds."],
-    ["Suivi", "Une formation d'un jour, ça s'oublie vite.\n\nC'est pourquoi chaque participant reçoit 30 jours de suivi sur WhatsApp : un défi par jour, corrigé personnellement.\n\nTu ne repars pas seul.", "Un téléphone avec une conversation WhatsApp ouverte et un calendrier de 30 jours dont les cases se cochent une à une."],
-    ["Places", "⚠️ Seulement 40 places.\n\nUne avance de 5 000 FCFA (remboursable jusqu'au 27 octobre) bloque ta place. Dès que les 40 places sont prises, les inscriptions ferment, même avant le 27 octobre.", "Une salle de formation avec quarante chaises alignées, dont presque toutes sont déjà occupées, quelques-unes seulement restent libres."],
-    ["Prix", "15 000 FCFA pour :\n\n• 4 heures de formation pratique\n• Tout le matériel (support, guide de prompts, cahier d'exercices)\n• 30 jours de suivi WhatsApp\n• Un certificat de participation\n\nAvance de 5 000 FCFA pour réserver (remboursable jusqu'au 27 octobre).", "Un billet de banque et des pièces à côté d'un cahier, d'un certificat et d'un téléphone, présentés comme un bon rapport qualité-prix."],
-    ["Question", "Question : qu'aimerais-tu que l'IA fasse pour toi ?\n\n✍️ Écrire tes messages ?\n🎨 Créer tes affiches ?\n🎬 Faire une vidéo ?\n🤖 Répondre à tes clients ?\n\nRéponds en commentaire. On le voit ensemble le 31 octobre.", "Un grand point d'interrogation lumineux entouré de quatre icônes : plume, pinceau, caméra et robot."],
-    ["Démo", "En direct pendant la formation, nous créons ensemble :\n\n📄 Un CV\n📣 Un post Facebook ou WhatsApp\n🖼️ Une affiche\n🎥 Une vidéo courte\n🤖 Un chatbot\n\nPuis c'est ton tour, sur ton téléphone.", "Un grand écran de démonstration qui affiche cinq créations : CV, post, affiche, vidéo et chatbot, devant un public attentif."]
+    ["Accroche", "Tout le monde parle de l'intelligence artificielle.\nTrès peu savent vraiment s'en servir.\n\nEt toi ?\n\nLe 31 octobre à Porto-Novo, une matinée pratique pour t'y mettre, sur ton téléphone.", "Une personne béninoise souriante qui regarde son téléphone avec curiosité, avec des symboles lumineux d'intelligence artificielle qui flottent autour de l'écran."],
+    ["Problème", "Tu as déjà ouvert ChatGPT… et refermé l'onglet sans comprendre ?\n\nCe n'est pas ta faute : personne ne t'a montré comment faire.", "Une personne perplexe devant son téléphone avec des points d'interrogation au-dessus de la tête, puis une ampoule allumée qui apparaît à côté."],
+    ["Programme", "En 4 heures, sur ton téléphone :\n\n✅ comprendre l'IA avec des mots simples\n✅ écrire une bonne consigne\n✅ créer un post, une affiche, un CV\n\nEn vrai, pas en théorie.", "Une checklist de six étapes illustrée par six petites icônes : cerveau, clavier, affiche, téléphone, pièces de monnaie, bulle WhatsApp."],
+    ["Méthode", "Voir. Faire. Refaire.\n\n👀 Tu regardes la démo\n📱 Tu le fais sur ton téléphone\n🔁 Tu recommences, avec de l'aide", "Une salle de formation à Porto-Novo avec un grand écran de démonstration et des participants qui suivent sur leur téléphone, ambiance conviviale."],
+    ["Pour qui", "Commerçant, artisan, étudiant, salarié ?\n\nAucun niveau demandé : les débutants sont les bienvenus.", "Un groupe varié de personnes béninoises : commerçante, étudiant, artisan, salarié en chemise, qui sourient ensemble."],
+    ["Honnêteté", "Soyons clairs :\n\n❌ pas une formation en ligne\n❌ pas de promesse de revenu\n\n✅ une matinée pratique, en présentiel, pour savoir te servir de l'IA.", "Un grand panneau vert avec une coche, à côté d'un petit panneau rouge barré, sur un fond sobre et rassurant."],
+    ["Entrepreneurs", "Une publication, une affiche, un message client…\n\nL'IA peut t'aider à les préparer en quelques minutes. Je te montre comment.", "Une couturière béninoise dans son atelier qui montre fièrement sur son téléphone une belle affiche pour sa boutique."],
+    ["Étudiants", "Comprendre un cours, préparer un exposé, rédiger un CV propre : l'IA peut t'aider, si tu sais lui poser les bonnes questions.", "Un étudiant béninois avec des livres et un téléphone, concentré, avec un CV propre et professionnel qui s'affiche à l'écran."],
+    ["Salariés", "Courriers, résumés, idées… l'IA peut te faire gagner du temps chaque semaine.\n\nEncore faut-il savoir comment s'y prendre.", "Un employé de bureau détendu devant son ordinateur, avec une horloge et un symbole de temps gagné qui brille à côté."],
+    ["Prompt", "❌ « Fais-moi un post »\n✅ « Écris un post de 5 lignes pour ma boutique de vêtements à Porto-Novo, ton chaleureux »\n\nPlus c'est précis, meilleur est le résultat.", "Deux bulles de discussion côte à côte : une petite et vide à gauche, une grande et détaillée à droite, pour illustrer une consigne précise."],
+    ["Astuce", "Astuce : donne un rôle à l'IA.\n\n« Tu es un conseiller pour petits commerçants. Donne-moi 5 idées pour attirer des clients cette semaine. »", "Un robot sympathique portant une casquette de conseiller et des lunettes, qui discute avec un commerçant sur un marché béninois."],
+    ["Futur", "Dans dix ans, l'IA sera aussi normale que le téléphone portable.\n\nLa question : quand est-ce que tu commences ?", "Une ville béninoise futuriste mais chaleureuse au lever du soleil, avec des gens qui utilisent leur téléphone dans la rue."],
+    ["Concurrents", "Certains l'utilisent déjà pour gagner du temps.\n\nUne matinée suffit pour prendre de l'avance.", "Des coureurs sur une piste, avec un coureur qui démarre en avance grâce à une lumière d'énergie bleue sous ses pieds."],
+    ["Suivi", "Une formation d'un jour, ça s'oublie vite.\n\nAlors tu as 30 jours de suivi sur WhatsApp, avec un défi par jour. Tu ne repars pas seul.", "Un téléphone avec une conversation WhatsApp ouverte et un calendrier de 30 jours dont les cases se cochent une à une."],
+    ["Places", "⚠️ Seulement 40 places.\n\nQuand elles sont prises, c'est fini.", "Une salle de formation avec quarante chaises alignées, dont presque toutes sont déjà occupées, quelques-unes seulement restent libres."],
+    ["Question", "Qu'aimerais-tu que l'IA fasse pour toi ?\n\n✍️ écrire tes messages ?\n🎨 créer tes affiches ?\n🤖 répondre à tes clients ?\n\nDis-le en commentaire 👇", "Un grand point d'interrogation lumineux entouré de quatre icônes : plume, pinceau, caméra et robot."],
+    ["Démo", "Pendant la formation, on crée ensemble un CV, un post, une affiche…\n\nPuis c'est ton tour, sur ton téléphone.", "Un grand écran de démonstration qui affiche cinq créations : CV, post, affiche, vidéo et chatbot, devant un public attentif."],
   ];
   
   // Inscriptions fermées, formation pas encore passée
   const LATE = [
-    ["Inscriptions closes", "🔒 Les inscriptions pour la formation « L'IA Pratique pour Tous » sont closes.\n\nMerci à tous ceux qui ont réservé leur place ! Rendez-vous le samedi 31 octobre, de 9h à 13h, à Porto-Novo, salle de l'ONG ADIL.", "Une porte qui se ferme doucement sur une salle pleine et lumineuse, avec un grand cadenas doré et une atmosphère de réussite."],
-    ["Préparation", "Participants du 31 octobre, pour bien préparer la matinée :\n\n📱 Viens avec ton téléphone chargé\n📶 Prévois de la connexion internet\n📝 Apporte de quoi noter\n⏰ Arrive un peu avant 9h\n\nOn s'occupe du reste !", "Un sac à dos ouvert avec un téléphone en charge, un cahier, un stylo et une montre posés sur une table, vus de dessus."],
-    ["Rappel", "Rappel pour nos participants :\n\n📍 Salle de l'ONG ADIL, Porto-Novo\n🗓️ Samedi 31 octobre, de 9h à 13h\n\nPense à ce que tu veux que l'IA fasse pour toi. On le mettra en pratique ensemble.", "Un calendrier avec la date du 31 entourée en rouge, à côté d'un repère de carte et d'un téléphone."]
+    ["Inscriptions closes", "🔒 Les inscriptions pour « L'IA Pratique pour Tous » sont closes.\n\nMerci à tous ceux qui ont réservé ! Rendez-vous samedi 31 octobre, de 9h à 13h, à Porto-Novo.", "Une porte qui se ferme doucement sur une salle pleine et lumineuse, avec un grand cadenas doré et une atmosphère de réussite."],
+    ["Préparation", "Participants du 31 octobre :\n\n📱 viens avec ton téléphone chargé\n📶 prévois de la connexion\n⏰ arrive un peu avant 9h", "Un sac à dos ouvert avec un téléphone en charge, un cahier, un stylo et une montre posés sur une table, vus de dessus."],
+    ["Rappel", "Rappel pour nos participants :\n\n📍 ONG ADIL, Porto-Novo\n🗓️ Samedi 31 octobre, 9h–13h\n\nPense à ce que tu veux que l'IA fasse pour toi.", "Un calendrier avec la date du 31 entourée en rouge, à côté d'un repère de carte et d'un téléphone."],
   ];
   
   // Jour J
   const DAYOF = [
-    ["Jour J", "C'est AUJOURD'HUI ! 🎉\n\nFormation « L'IA Pratique pour Tous »\n⏰ 9h – 13h\n📍 Porto-Novo, salle de l'ONG ADIL\n\nViens avec ton téléphone chargé. À tout à l'heure !", "Des participants souriants qui arrivent devant une salle de formation le matin, avec le soleil qui se lève et une ambiance de fête."],
-    ["Jour J", "Dans quelques heures, tu sauras écrire une consigne pour l'IA, créer un post, une affiche et bien plus.\n\nOn commence à 9h précises. Sois à l'heure ! 😉", "Une horloge qui indique 9h avec des rayons de lumière, entourée de petites icônes d'IA, de créativité et de téléphone."],
-    ["Jour J", "La formation est en cours à Porto-Novo ! 🔥\n\nMerci aux participants pour leur énergie. Ce soir, tu sauras te servir de l'IA.", "Une salle pleine de participants concentrés et heureux, qui utilisent leur téléphone pendant que le formateur montre l'écran."]
+    ["Jour J", "C'est AUJOURD'HUI ! 🎉\n\n« L'IA Pratique pour Tous »\n⏰ 9h – 13h · 📍 ONG ADIL, Porto-Novo\n\nViens avec ton téléphone chargé !", "Des participants souriants qui arrivent devant une salle de formation le matin, avec le soleil qui se lève et une ambiance de fête."],
+    ["Jour J", "Dans quelques heures, tu sauras écrire une consigne pour l'IA et créer un post ou une affiche.\n\nOn commence à 9h précises 😉", "Une horloge qui indique 9h avec des rayons de lumière, entourée de petites icônes d'IA, de créativité et de téléphone."],
+    ["Jour J", "La formation est en cours à Porto-Novo ! 🔥\n\nMerci aux participants pour leur énergie.", "Une salle pleine de participants concentrés et heureux, qui utilisent leur téléphone pendant que le formateur montre l'écran."],
   ];
   
   // Après la formation
   const AFTER = [
-    ["Merci", "Merci à tous les participants de « L'IA Pratique pour Tous » ! 🙏\n\nQuelle matinée. Tu as vu, fait et refait. Le plus important commence maintenant : pratiquer chaque jour.", "Un groupe de participants joyeux qui lèvent leurs certificats ensemble dans une salle, ambiance de célébration."],
-    ["Suivi", "Participants : tes 30 jours de défis quotidiens ont commencé sur WhatsApp.\n\n1 défi par jour, 10 minutes, et tu progresses pour de bon. Ne lâche rien !", "Un téléphone qui affiche un défi du jour avec une flamme de motivation et un calendrier de 30 jours."],
-    ["Rappel", "L'IA, c'est comme un muscle : plus on l'utilise, plus on devient bon.\n\nAujourd'hui, essaie une chose : demande à l'IA de t'aider sur une tâche réelle de ta journée.", "Un bras musclé stylisé fait de circuits lumineux, à côté d'un téléphone, pour symboliser l'entraînement quotidien."]
+    ["Merci", "Merci à tous les participants de « L'IA Pratique pour Tous » ! 🙏\n\nTu as vu, fait et refait. Le plus important commence maintenant : pratiquer chaque jour.", "Un groupe de participants joyeux qui lèvent leurs certificats ensemble dans une salle, ambiance de célébration."],
+    ["Suivi", "Participants : tes 30 jours de défis ont commencé sur WhatsApp.\n\n1 défi par jour, 10 minutes. Ne lâche rien !", "Un téléphone qui affiche un défi du jour avec une flamme de motivation et un calendrier de 30 jours."],
+    ["Rappel", "L'IA, c'est comme un muscle : plus on l'utilise, plus on devient bon.\n\nAujourd'hui, essaie-la sur une tâche réelle de ta journée.", "Un bras musclé stylisé fait de circuits lumineux, à côté d'un téléphone, pour symboliser l'entraînement quotidien."],
   ];
   
   // Posts spéciaux pour des jours précis, indexés par « jours restants » (remplacent le 1er post du jour)
   const SPECIAL = {
-    30: ["Lancement", "🚀 NOUVEAU : « L'IA Pratique pour Tous »\n\nUne formation pratique de 4 heures pour apprendre à utiliser l'intelligence artificielle, sans jargon.\n\n📍 Porto-Novo · 🗓️ Samedi 31 octobre, 9h–13h\n\nLes places sont limitées à 40. Ouverture des inscriptions maintenant !", "Une fusée stylisée qui décolle d'un téléphone, avec des symboles d'intelligence artificielle et des confettis, couleurs vives, ambiance de lancement."],
-    14: ["J-14", "Il reste 2 semaines avant la formation et les places partent.\n\nSi tu hésites encore : une matinée, des exemples concrets, 30 jours de suivi. Tu n'as rien à perdre à venir essayer.", "Un sablier avec du sable bleu qui s'écoule et un calendrier à l'arrière-plan, ambiance d'urgence douce."],
-    7: ["J-7", "⏳ Dans une semaine, tu sauras utiliser l'IA.\n\nIl reste quelques places pour le samedi 31 octobre à Porto-Novo. N'attends pas la dernière minute.", "Un calendrier dont il ne reste que sept cases, avec une flèche brillante qui pointe vers la date finale."],
-    5: ["J-5", "Plus que quelques jours pour t'inscrire.\n\nLes inscriptions ferment le 27 octobre, ou dès que les 40 places sont prises. Envoie « OUI » sur WhatsApp pour bloquer la tienne.", "Une main qui tend un ticket d'entrée doré devant un compte à rebours lumineux, dynamique et énergique."],
-    4: ["Dernier jour", "🔔 DERNIER JOUR pour t'inscrire !\n\nLes inscriptions ferment ce soir. Après, ce sera trop tard pour réserver ta place du 31 octobre.", "Une cloche d'alerte dorée qui sonne, avec une horloge en arrière-plan qui approche de minuit, ambiance d'urgence."]
+    30: ["Lancement", "🚀 NOUVEAU : « L'IA Pratique pour Tous »\n\nUne matinée pratique à Porto-Novo, samedi 31 octobre, pour apprendre à utiliser l'IA sur ton téléphone.\n\nPlaces limitées à 40.", "Une fusée stylisée qui décolle d'un téléphone, avec des symboles d'intelligence artificielle et des confettis, couleurs vives, ambiance de lancement."],
+    14: ["J-14", "Plus que 2 semaines.\n\nUne matinée, des exemples concrets, 30 jours de suivi. Viens essayer.", "Un sablier avec du sable bleu qui s'écoule et un calendrier à l'arrière-plan, ambiance d'urgence douce."],
+    7: ["J-7", "⏳ Dans une semaine, tu sauras utiliser l'IA.\n\nLes places sont limitées à 40.", "Un calendrier dont il ne reste que sept cases, avec une flèche brillante qui pointe vers la date finale."],
+    5: ["J-5", "Plus que quelques jours pour t'inscrire.\n\nLes inscriptions ferment le 27 octobre, ou dès que les 40 places sont prises.", "Une main qui tend un ticket d'entrée doré devant un compte à rebours lumineux, dynamique et énergique."],
+    4: ["Dernier jour", "🔔 DERNIER JOUR pour t'inscrire !\n\nAprès aujourd'hui, ce sera trop tard pour le 31 octobre.", "Une cloche d'alerte dorée qui sonne, avec une horloge en arrière-plan qui approche de minuit, ambiance d'urgence."],
   };
   return {
-    id: "seed-formation", v: 4, name: "L'IA Pratique pour Tous", type: "formation",
+    id: "seed-formation", v: 5, name: "L'IA Pratique pour Tous", type: "formation",
     description: "Une matinée pratique pour apprendre à utiliser l'intelligence artificielle, sans jargon.\n- Comprendre l'IA avec des mots simples\n- Écrire une bonne consigne (prompt)\n- Créer un CV, un post, une affiche, une vidéo courte, un chatbot\n- 30 jours d'accompagnement sur WhatsApp",
     date: "2026-10-31", close: "2026-10-27", lieu: "Porto-Novo, salle de l'ONG ADIL",
-    prix: "15 000 FCFA (avance de 5 000 FCFA remboursable jusqu'au 27 octobre)", contact: "WhatsApp 01 96 48 66 26", organisateur: "NEXTERA",
+    prix: "15 000 FCFA", contact: "https://kouagou-mangou.tinypages.co/lia-pour-tous", organisateur: "NEXTERA",
     public: "entrepreneurs, commerçants, étudiants, salariés, artisans", ambiance: "bleu et orange, ambiance africaine / Bénin",
     tags: "#IA #IntelligenceArtificielle #IAgénérative #PortoNovo #Bénin #Formation",
-    info: "📍 Samedi 31 octobre 2026, de 9h à 13h\nPorto-Novo, salle de l'ONG ADIL\n💰 15 000 FCFA (4h de formation + 30 jours de suivi WhatsApp)\n🔒 Avance de 5 000 FCFA pour bloquer ta place (remboursable jusqu'au 27 octobre)\n👥 40 places seulement\n🎓 Débutants acceptés, aucun prérequis. Viens avec ton smartphone.\n⏰ Inscriptions jusqu'au 27 octobre\n🏢 Organisé par NEXTERA – Porto-Novo, Bénin",
-    cta: "👉 Pour réserver ta place, envoie « OUI » sur WhatsApp au 01 96 48 66 26.",
+    info: "📍 Samedi 31 octobre, 9h–13h · ONG ADIL, Porto-Novo · 40 places",
+    cta: "👉 Clique sur le lien pour tout comprendre et rejoindre le groupe WhatsApp : https://kouagou-mangou.tinypages.co/lia-pour-tous",
+    ctaBio: "👉 Clique sur le lien dans ma bio pour tout comprendre et rejoindre le groupe WhatsApp.",
     pools: { open: OPEN, late: LATE, dayof: DAYOF, after: AFTER, special: SPECIAL }
   };
 }
@@ -269,7 +268,9 @@ function buildInfo(o) {
   if (o.organisateur) L.push("🏢 Organisé par " + o.organisateur);
   return L.join("\n");
 }
-const buildCta = o => o.contact ? "👉 " + (CTA_VERB[o.type] || CTA_VERB.autre) + " : " + o.contact : "";
+const estLien = o => /^https?:\/\//i.test(o.contact || "");
+const buildCta = o => !o.contact ? "" : estLien(o) ? "👉 Clique sur le lien pour tout comprendre et " + (CTA_VERB[o.type] || CTA_VERB.autre).replace(/^Pour /, "").toLowerCase() + " : " + o.contact : "👉 " + (CTA_VERB[o.type] || CTA_VERB.autre) + " : " + o.contact;
+const buildCtaBio = o => estLien(o) ? "👉 Clique sur le lien dans ma bio pour tout comprendre." : "";
 function buildTags(o) {
   if (o.tags && o.tags.trim()) return o.tags.trim();
   const w = o.name.replace(/[^\p{L}\p{N}\s]/gu, "").split(/\s+/).filter(Boolean).map(x => x[0].toUpperCase() + x.slice(1)).join("");
@@ -326,7 +327,7 @@ function genPools(o) {
 function makeOpp(f, old) {
   const o = Object.assign({}, old || {}, f, { id: old ? old.id : "o" + Date.now(), edited: true });
   if (!o.date) o.close = "";
-  o.info = buildInfo(o); o.cta = buildCta(o); o.tags = buildTags(o);
+  o.info = buildInfo(o); o.cta = buildCta(o); o.ctaBio = buildCtaBio(o); o.tags = buildTags(o);
   o.pools = genPools(o);
   return o;
 }
@@ -406,7 +407,7 @@ function buildVideo(kind, p, o, left, open) {
     L.push("📝 Texte à l'écran : « " + short(s, isT ? 45 : 50) + " »");
   });
   L.push("", "⏱️ " + range(ctaLen) + " · APPEL À L'ACTION");
-  const cta = x.cta ? strip(x.cta) : "";
+  const cta = x.cta ? strip(o.ctaBio || x.cta) : "";
   if (cta) { if (isT) L.push("🗣️ Dis : « " + cta + " »"); L.push("📝 Texte à l'écran : « " + short(cta, 60) + " »"); }
   if (x.info) L.push("📍 Affiche les infos : " + x.info.split("\n").slice(0, 3).map(strip).join(" · "));
   L.push("");

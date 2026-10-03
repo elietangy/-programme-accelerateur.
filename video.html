@@ -143,7 +143,7 @@ const BEATS = {
   2: ["Fond bleu et orange, le nom « L'IA Pratique pour Tous » apparaît", "La date et le lieu apparaissent", "« 40 places seulement » apparaît"],
   3: ["Le texte d'appel à l'action apparaît", "Une icône de message pulse pour inviter à réserver"]
 };
-const CTA_SCREEN = { "1": "OUI + ton nom → 01 96 48 66 26", "2": "Réserve ta place avant le 27 octobre", "3": "40 places · 31 octobre · Réserve sur WhatsApp" };
+const CTA_SCREEN = { "1": "Clique sur le lien dans ma bio", "2": "Réserve avant le 27 octobre · lien en bio", "3": "40 places · 31 octobre · lien en bio" };
 const VOICE = {
   1: "Je demande à l'IA de rédiger une demande de congé… et le texte est prêt.",
   2: "L'IA Pratique pour Tous : samedi 31 octobre, à Porto-Novo, 40 places seulement.",
@@ -209,12 +209,12 @@ const scriptText = h => scriptRows(h).map(r => "Seconde " + r.sec + " (" + r.seg
 const LINK = S.reservation.lienReservation;
 const HOOK_LINE = { A: S.hooks[0].texte, B: S.hooks[1].texte, C: S.hooks[2].texte, D: "Tu dictes « Rédige une demande de congé. » et le texte apparaît tout de suite." };
 function caption(plat, h) {
-  const p = S.produit, rem = "Avance de " + S.reservation.avance + " remboursée intégralement si tu es empêché.";
-  const infos = p.nom + " : " + p.date + ", " + p.horaire.replace(/ \(.*\)/, "") + ", " + p.lieu + ". " + p.places + " places seulement.";
-  if (plat === "TikTok") return HOOK_LINE[h] + "\n\n" + infos + "\n👉 Réserve ta place : lien dans ma bio, ou envoie OUI + ton nom au " + S.reservation.whatsapp + ".\n\n#IA #IntelligenceArtificielle #Bénin #PortoNovo #FormationIA";
-  if (plat === "Statut WhatsApp") return "📱 " + p.nom + "\n" + p.date + " · 9h-13h · " + p.lieu + "\n" + p.places + " places seulement\n👉 Réserve ta place : " + LINK + "\n" + rem;
-  if (plat === "YouTube Shorts") return "TITRE : L'IA sur ton téléphone, expliquée simplement | Porto-Novo\n\nDESCRIPTION :\n" + HOOK_LINE[h] + "\n\n" + infos + "\n" + rem + "\n👉 Réserve ta place : " + LINK + "\n\n#Shorts #IA #Bénin #PortoNovo";
-  return "🎬 " + HOOK_LINE[h] + "\n\n" + infos + "\n" + rem + "\n👉 Réserve ta place : " + LINK + "\n\n(Texte à publier par toi-même sur ta Page ou ton profil, après avoir vu l'aperçu.)";
+  const p = S.produit;
+  const court = p.nom + " · " + p.date + " · " + p.lieu + " · " + p.places + " places";
+  if (plat === "TikTok") return HOOK_LINE[h] + "\n\n" + court + "\n👉 Clique sur le lien dans ma bio pour tout comprendre et rejoindre le groupe WhatsApp.\n\n#IA #IntelligenceArtificielle #Bénin #PortoNovo #FormationIA";
+  if (plat === "Statut WhatsApp") return "📱 " + p.nom + "\n" + p.date + " · " + p.lieu + " · " + p.places + " places\n👉 Clique pour tout comprendre et rejoindre le groupe WhatsApp : " + LINK;
+  if (plat === "YouTube Shorts") return "TITRE : L'IA sur ton téléphone, expliquée simplement | Porto-Novo\n\nDESCRIPTION :\n" + HOOK_LINE[h] + "\n\n" + court + "\n👉 Tout comprendre et rejoindre le groupe WhatsApp : " + LINK + "\n\n#Shorts #IA #Bénin #PortoNovo";
+  return "🎬 " + HOOK_LINE[h] + "\n\n" + court + "\n👉 Clique pour tout comprendre et rejoindre le groupe WhatsApp : " + LINK + "\n\n(Texte à publier par toi-même sur ta Page ou ton profil, après avoir vu l'aperçu.)";
 }
 
 // ---------- Contrôle des règles ----------
@@ -232,6 +232,8 @@ function checks(ids) {
   res.push(m2.length ? ["bad", "Promesse de gain possible : " + m2.join(", ")] : ["ok", "Aucune promesse de gain d'argent."]);
   const m3 = findAny(t, c.adresseSuspecte);
   res.push(m3.length ? ["bad", "Adresse possible (à retirer) : " + m3.join(", ")] : ["ok", "Seul « ONG ADIL, Porto-Novo » est cité comme lieu."]);
+  const m4 = findAny(t, c.ancienCTA || []);
+  res.push(m4.length ? ["bad", "Ancien appel à l'action (numéro ou « OUI + nom ») : " + m4.join(", ") + ". Tout doit renvoyer vers le lien."] : ["ok", "Tout renvoie vers ton lien (lien dans la bio pour les vidéos), sans numéro."]);
   res.push(S.reservation.lienReservation ? ["ok", "Lien de réservation renseigné."] : ["bad", "Lien de réservation manquant."]);
   if (ids.some(h => h === "B" || h === "C")) res.push(["warn", "Les hooks B et C annoncent « 10 secondes » : le chrono doit être réel, sinon retire cette promesse."]);
   const faceMode = [0, 1, 2, 3].some(i => st.modes[i] === "reel");

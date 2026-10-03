@@ -66,6 +66,18 @@ Tu peux ouvrir la page vidéo par : **http://localhost:3000/video.html** (ouvre-
 
 **Si tu penses que ta clé a fuité** (partagée par erreur, capture d'écran montrée, etc.) : supprime-la tout de suite dans la console Higgsfield et crée-en une nouvelle.
 
+## Étape F : générer une vidéo depuis la page (sans copier le prompt)
+
+1. Lance **demarrer.bat** et ouvre **http://localhost:3000/video.html** (pas la version GitHub : elle ne peut pas parler à ton serveur).
+2. Va tout en bas, section **« 6. Générer la vidéo avec Higgsfield »**. Le haut de cette section te dit en vert, orange ou rouge si tout est prêt (mode, clé, réglage, plafonds).
+3. Choisis le **hook** (le D pour ton premier test) et la **résolution** (480p ou 720p coûtent moins que 1080p). Le prompt est déjà écrit : tu peux le relire et le modifier.
+4. Dans la section 1, saisis le **prix par seconde** de ta console Higgsfield pour voir le coût estimé.
+5. Clique sur **« Générer UNE vidéo test… »**. Un encadré jaune te résume tout. Coche la case de confirmation, puis **« Oui, lancer cette vidéo »**. Rien ne part avant.
+6. La page suit l'état toute seule (en attente, en cours, terminée, échouée). Quand c'est **terminée**, la vidéo s'affiche et un bouton te permet de la **télécharger**. Regarde-la avant de publier : l'application ne publie rien.
+7. Si ça échoue, la page affiche l'erreur en français et **ne relance rien**. C'est toi qui décides.
+
+**Important sur l'argent :** d'après les informations que j'ai lues, l'API Higgsfield se paie **à l'usage, en dollars, séparément de l'abonnement de l'application web**. Les crédits de ton plan Pro ne servent peut-être pas pour l'API (à vérifier dans ta console). Le prix par seconde est à lire dans ta console : je ne le connais pas.
+
 ## Tes plafonds de crédits
 
 Dans `.env` :

@@ -381,7 +381,7 @@ async function loadSrv() {
   try { srv = await (await fetch(API + "/api/etat")).json(); }
   catch (e) { srv = null; line("bad", "❌ Le serveur ne répond pas. Lance demarrer.bat (dans le dossier serveur) et laisse la fenêtre noire ouverte."); refreshGen(); return; }
   line(srv.simulation ? "warn" : "ok", srv.simulation ? "🧪 Mode SIMULATION : aucun appel à Higgsfield, aucun coût. Pour le vrai service, mets MODE_SIMULATION=0 dans .env." : "💳 Mode RÉEL : chaque génération dépense de l'argent réel.");
-  line(srv.cleConfiguree ? "ok" : "warn", srv.cleConfiguree ? "🔑 Clé Higgsfield trouvée (jamais affichée)." : "🔑 Aucune clé dans .env (suis le guide LISEZ-MOI.md, étape E).");
+  line(srv.cleConfiguree ? "ok" : srv.cleSuspecte ? "bad" : "warn", srv.cleConfiguree ? "🔑 Clé Higgsfield trouvée (jamais affichée)." : srv.cleSuspecte ? "🔑 La clé dans .env a l'air incorrecte (espaces ou texte d'exemple). Lance ajouter-ma-cle.bat." : "🔑 Aucune clé dans .env (lance ajouter-ma-cle.bat, voir LISEZ-MOI.md).");
   line(srv.reglageComplet ? "ok" : "warn", srv.reglageComplet ? "⚙️ Réglage Higgsfield présent." : "⚙️ Réglage Higgsfield incomplet (higgsfield-reglage.json).");
   line(srv.restantJour > 0 && srv.restantSession > 0 ? "ok" : "bad", "📊 Plafonds : il reste " + srv.restantJour + " vidéo(s) aujourd'hui (sur " + srv.plafondJour + ") et " + srv.restantSession + " pour cette session (sur " + srv.plafondSession + ").");
   refreshGen(); loadHist();

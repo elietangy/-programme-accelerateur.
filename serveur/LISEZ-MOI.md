@@ -49,22 +49,20 @@ Le modèle `.env` est réglé sur `MODE_SIMULATION=1` : le serveur fait semblant
 
 Tu peux ouvrir la page vidéo par : **http://localhost:3000/video.html** (ouvre-la toujours par cette adresse quand tu veux générer, pas par la version sur GitHub).
 
-## Étape E : mettre ta clé (seulement quand tu es prêt à utiliser le vrai service)
+## Étape E : mettre ta clé (outil automatique, sans copier-coller dans un fichier)
 
-À faire plus tard, avec moi, après l'étape 4. Rappel de la marche à suivre :
+1. Dans ta console Higgsfield (**open.higgsfield.ai**, menu **API keys**), clique sur **Create API key**. Une fenêtre « Save your API key » s'affiche avec ta clé (en partie masquée) : **ne la ferme pas encore**. Elle ne s'affiche qu'une fois.
+2. Clique sur le bouton blanc **« Copy API key »** (la clé complète est copiée, tu ne la vois pas).
+3. Dans le dossier **serveur**, double-clique sur **ajouter-ma-cle.bat**.
+4. La fenêtre noire doit dire **« ✅ Ta clé est enregistrée dans le fichier .env »** avec les 4 premiers caractères de l'identifiant. Elle n'affiche jamais la clé entière.
+5. Tu peux fermer la fenêtre « Save your API key ». Garde `MODE_SIMULATION=1` (aucun coût) tant que tu n'es pas prêt.
+6. Relance **demarrer.bat** : la fenêtre noire doit dire « Clé Higgsfield : trouvée dans .env ».
 
-1. Dans ta console Higgsfield (d'après les informations que j'ai lues : **console.higgsfield.ai**, les menus peuvent différer), crée une clé API. Elle a **deux parties** : un identifiant et un secret. **Le secret ne s'affiche qu'une seule fois** : copie-le tout de suite.
-2. Ferme le serveur. Ouvre le fichier `.env` avec le **Bloc-notes** (clic droit, Ouvrir avec, Bloc-notes).
-3. Remplace seulement ce qui est après le signe `=` :
-   ```
-   HIGGSFIELD_KEY_ID=ton-identifiant
-   HIGGSFIELD_KEY_SECRET=ton-secret
-   ```
-   Pas d'espace, pas de guillemets.
-4. Quand je te le dirai, change `MODE_SIMULATION=1` en `MODE_SIMULATION=0`.
-5. Enregistre (Ctrl + S), ferme le Bloc-notes, relance **demarrer.bat**. La fenêtre doit afficher « Clé Higgsfield : trouvée dans .env » (elle n'affiche jamais la clé elle-même).
+**Ne clique pas sur « Copy the setup prompt »** : ce texte est destiné à un agent de programmation et contient ta clé.
 
-**Si tu penses que ta clé a fuité** (partagée par erreur, capture d'écran montrée, etc.) : supprime-la tout de suite dans la console Higgsfield et crée-en une nouvelle.
+Si ça ne marche pas, l'outil l'explique en français. Si tu as fermé la fenêtre trop tôt, supprime la clé dans la console et crées-en une nouvelle (c'est gratuit).
+
+Pour passer au **vrai service** (dépenses réelles) : vérifie le prix dans ta console, puis remplace `MODE_SIMULATION=1` par `MODE_SIMULATION=0` dans `.env`.
 
 ## Étape F : générer une vidéo depuis la page (sans copier le prompt)
 

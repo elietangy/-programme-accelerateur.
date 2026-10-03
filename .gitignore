@@ -1,0 +1,6 @@
+# Ne jamais envoyer de clé ni de fichier généré sur GitHub
+.env
+serveur/.env
+serveur/donnees/
+serveur/videos/
+node_modules/

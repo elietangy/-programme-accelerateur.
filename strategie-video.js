@@ -32,11 +32,11 @@ const STRATEGIE = {
   // ---------- Réservation ----------
   reservation: {
     lienReservation: "https://kouagou-mangou.tinypages.co/lia-pour-tous",   // lien sur lequel on clique pour réserver
-    whatsapp: "01 96 48 66 26",
-    messageWhatsApp: "OUI + NOM",
+    // Règle : TOUS les posts et TOUTES les vidéos renvoient vers ce seul lien (dans la bio TikTok, dans les posts).
+    // Pas de numéro de téléphone, pas de « OUI + nom ». La page explique tout et donne envie de rejoindre le groupe.
     parcours: [
-      "La personne voit la vidéo, puis clique sur le lien de réservation (ou envoie « OUI + NOM » sur WhatsApp).",
-      "Elle reçoit le lien du groupe WhatsApp « L'IA Pratique pour Tous — Porto-Novo ».",
+      "La personne voit la vidéo (TikTok : « clique sur le lien dans ma bio ») ou le post (avec le lien).",
+      "La page explique tout, puis son lien envoie la personne vers l'agent IA, qui l'ajoute au groupe WhatsApp « L'IA Pratique pour Tous — Porto-Novo ».",
       "La réservation garde la place jusqu'au 27 octobre.",
       "L'avance de 5 000 FCFA, envoyée avant le 27 octobre, confirme la place.",
       "Le solde de 10 000 FCFA se règle sur place le 31 octobre à 9h, par Mobile Money au plus tard le jeudi 29 octobre, ou en paiement total à l'avance."
@@ -90,9 +90,9 @@ const STRATEGIE = {
 
   // ---------- Appels à l'action à tester (texte du brief) ----------
   cta: [
-    { id: "1", texte: "Envoie OUI + ton nom au 01 96 48 66 26." },
-    { id: "2", texte: "Réserve ta place avant le 27 octobre." },
-    { id: "3", texte: "40 places seulement. Samedi 31 octobre à Porto-Novo. Réserve maintenant sur WhatsApp." }
+    { id: "1", texte: "Clique sur le lien dans ma bio pour tout comprendre." },
+    { id: "2", texte: "Réserve ta place avant le 27 octobre : lien dans ma bio." },
+    { id: "3", texte: "40 places seulement. Samedi 31 octobre à Porto-Novo. Clique sur le lien dans ma bio." }
   ],
 
   // ---------- Formats et plateformes ----------
@@ -111,6 +111,7 @@ const STRATEGIE = {
     "Aucun faux témoignage, aucun faux avis.",
     "Ne jamais inventer d'adresse : écrire seulement « ONG ADIL, Porto-Novo ».",
     "Ne pas citer Facebook ni Instagram à l'intérieur des vidéos.",
+    "Tout renvoie vers le lien de réservation (lien dans la bio pour les vidéos). Pas de numéro de téléphone, pas de « OUI + nom ».",
     "Ne cloner aucune autre personne et n'imiter aucune voix existante.",
     "Ne copier aucune vidéo, voix ou visuel d'un autre créateur.",
     "L'application génère seulement : elle ne publie rien, ne partage rien.",
@@ -122,6 +123,7 @@ const STRATEGIE = {
   controles: {
     motsInterdits: ["facebook", "instagram"],
     promessesDeGain: ["gagner de l'argent", "gagnez de l'argent", "gagnez des millions", "revenu", "revenus", "devenir riche", "argent facile", "salaire", "millionnaire", "garanti"],
+    ancienCTA: ["oui + ", "01 96 48 66 26", "0196486626", "+22901"],
     adresseSuspecte: ["rue ", "avenue", "boulevard", "quartier", "carrefour", "derrière", "à côté de", "près de", "face à"]
   },
 

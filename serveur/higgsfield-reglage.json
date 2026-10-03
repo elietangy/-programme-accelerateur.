@@ -1,0 +1,12 @@
+{
+  "_aide": [
+    "Ce fichier dit au serveur COMMENT parler à Higgsfield pour créer une vidéo.",
+    "Je ne connais pas encore ces valeurs : elles doivent venir de la documentation officielle de Higgsfield (page du modèle choisi).",
+    "endpointModele : le chemin du modèle vidéo, qui commence par une barre oblique. Ex. de forme : /nom-du-modele (à copier depuis la documentation).",
+    "corps : les champs envoyés à Higgsfield, avec les noms EXACTS de la documentation.",
+    "Dans les valeurs, tu peux écrire {{prompt}}, {{duree}} (en secondes) et {{format}} (ex. 9:16) : le serveur les remplace.",
+    "Tant que endpointModele ou corps sont vides, le serveur refuse de générer avec le vrai service (le mode simulation reste possible)."
+  ],
+  "endpointModele": "",
+  "corps": {}
+}

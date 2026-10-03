@@ -34,7 +34,10 @@ const BASE = (process.env.HIGGSFIELD_BASE_URL || 'https://api.higgsfield.ai').re
 const KEY_ID = (process.env.HIGGSFIELD_KEY_ID || '').trim();
 const KEY_SECRET = (process.env.HIGGSFIELD_KEY_SECRET || '').trim();
 const cleExemple = v => !v || v.startsWith('colle-ici');
-const CLE_OK = !cleExemple(KEY_ID) && !cleExemple(KEY_SECRET);
+const cleBizarre = v => /\s/.test(v) || v.length < 8;   // espaces ou trop courte : ce n'est pas une vraie clé
+const CLE_PRESENTE = !cleExemple(KEY_ID) && !cleExemple(KEY_SECRET);
+const CLE_SUSPECTE = CLE_PRESENTE && (cleBizarre(KEY_ID) || cleBizarre(KEY_SECRET));
+const CLE_OK = CLE_PRESENTE && !CLE_SUSPECTE;
 const SIMULATION = process.env.MODE_SIMULATION === '1';
 const MAX_JOUR = Number(process.env.MAX_VIDEOS_PAR_JOUR || 3);
 const MAX_SESSION = Number(process.env.MAX_VIDEOS_PAR_SESSION || 2);
@@ -146,7 +149,7 @@ function lireCorps(req) {
 function etat() {
   const r = reglage();
   return {
-    cleConfiguree: CLE_OK, simulation: SIMULATION, reglageComplet: r.complet,
+    cleConfiguree: CLE_OK, cleSuspecte: CLE_SUSPECTE, simulation: SIMULATION, reglageComplet: r.complet,
     plafondJour: MAX_JOUR, restantJour: Math.max(0, MAX_JOUR - compteJour()),
     plafondSession: MAX_SESSION, restantSession: Math.max(0, MAX_SESSION - compteSession)
   };
@@ -271,7 +274,7 @@ serveur.listen(PORT, HOTE, () => {
   const e = etat();
   console.log('');
   console.log('Serveur vidéo prêt. Ouvre : http://localhost:' + PORT + '/video.html');
-  console.log('Clé Higgsfield : ' + (CLE_OK ? 'trouvée dans .env' : 'ABSENTE (voir LISEZ-MOI.md)'));
+  console.log('Clé Higgsfield : ' + (CLE_OK ? 'trouvée dans .env' : CLE_SUSPECTE ? 'PRÉSENTE MAIS INCORRECTE (espaces ou trop courte : ce ne sont pas de vraies valeurs)' : 'ABSENTE (voir LISEZ-MOI.md)'));
   console.log('Mode : ' + (SIMULATION ? 'SIMULATION (aucun coût, aucun appel à Higgsfield)' : 'RÉEL (les générations consomment des crédits)'));
   console.log('Réglage Higgsfield : ' + (e.reglageComplet ? 'complet' : 'incomplet (higgsfield-reglage.json)'));
   console.log('Plafonds : ' + MAX_JOUR + ' par jour (restant : ' + e.restantJour + '), ' + MAX_SESSION + ' par session.');

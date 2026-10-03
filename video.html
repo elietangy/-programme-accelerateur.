@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module Vidéo - L'IA Pratique pour Tous</title>
+<style>
+  :root { --bg:#f4f7f6; --card:#fff; --txt:#1a202c; --muted:#718096; --brand:#2563eb; --ok:#2f9e5b; --bad:#d9433b; --warn:#b7791f; --line:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  .wrap { max-width:860px; margin:0 auto; padding:16px; }
+  h1 { text-align:center; font-size:1.5em; margin:10px 0 2px; }
+  h2 { font-size:1.15em; margin:0 0 10px; }
+  h3 { font-size:1em; margin:14px 0 6px; }
+  .sub { text-align:center; color:var(--muted); margin:0 0 12px; }
+  .top { text-align:center; margin-bottom:10px; font-size:.95em; }
+  .top a { color:var(--brand); }
+  .banner { background:#eef4ff; border:1px solid var(--brand); border-radius:10px; padding:10px 14px; margin-bottom:14px; font-size:.95em; }
+  .box { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:14px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+  label.f { display:block; font-weight:600; margin:10px 0 4px; font-size:.95em; }
+  label.f small { font-weight:400; color:var(--muted); }
+  select, input[type=number] { width:100%; padding:10px; border:1px solid #cbd5e0; border-radius:8px; font:inherit; background:#fff; color:var(--txt); }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:560px) { .grid { grid-template-columns:1fr; } }
+  .ok { color:var(--ok); } .bad { color:var(--bad); } .warn { color:var(--warn); }
+  ul.checks { list-style:none; padding:0; margin:6px 0; }
+  ul.checks li { padding:3px 0; }
+  table { width:100%; border-collapse:collapse; font-size:.9em; }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:#f1f5f9; }
+  td.sec { white-space:nowrap; font-weight:700; width:48px; }
+  tr.seg td { background:#eef4ff; font-weight:700; }
+  .tablewrap { overflow-x:auto; }
+  .card { border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:10px; background:#fff; }
+  .card .t { font-weight:700; color:var(--brand); }
+  .prompt { background:#f8fafc; border:1px dashed #94a3b8; border-radius:8px; padding:10px; white-space:pre-wrap; font-size:.9em; margin:6px 0; }
+  .copy { background:var(--brand); color:#fff; border:0; border-radius:8px; padding:9px 14px; font-size:.95em; font-weight:700; cursor:pointer; }
+  .copy.done { background:var(--ok); }
+  .copy.sec { background:#fff; color:var(--brand); border:1px solid var(--brand); }
+  .copy.sec.done { background:var(--ok); color:#fff; border-color:var(--ok); }
+  details { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 16px; margin-bottom:14px; }
+  summary { cursor:pointer; font-weight:700; }
+  .hint { color:var(--muted); font-size:.9em; margin:6px 0; }
+  .big { font-size:1.2em; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="posts.html">← Mes posts du jour</a></div>
+  <h1>🎬 Module vidéo</h1>
+  <p class="sub">« Le Miracle du Téléphone » · L'IA Pratique pour Tous</p>
+  <div class="banner">🔒 <b>Aperçu seulement.</b> Cette page ne génère aucune vidéo, ne publie rien et ne dépense aucun crédit. Elle prépare le script, le storyboard, les prompts et les textes à copier.</div>
+
+  <!-- 1. Formulaire -->
+  <div class="box">
+    <h2>1. Choisis ta vidéo</h2>
+    <div class="grid">
+      <div><label class="f">Concept</label><select id="fConcept"></select></div>
+      <div><label class="f">Hook</label><select id="fHook"></select></div>
+      <div><label class="f">Appel à l'action (CTA)</label><select id="fCta"></select></div>
+      <div><label class="f">Durée</label>
+        <select id="fDur"><option value="15">15 secondes</option><option value="20" selected>20 secondes (recommandé)</option><option value="30">30 secondes</option></select></div>
+      <div><label class="f">Plateforme <small>(pour les textes d'accompagnement)</small></label><select id="fPlat"></select></div>
+      <div><label class="f">Prix par seconde de vidéo IA, en dollars <small>(à lire dans ta console Higgsfield)</small></label>
+        <input type="number" id="fPrix" min="0" step="0.001" placeholder="Ex : 0.05"></div>
+    </div>
+  </div>
+
+  <!-- 2. Contrôle des règles -->
+  <div class="box"><h2>2. Contrôle de tes règles</h2><div id="checks"></div></div>
+
+  <!-- 3. Coût estimé -->
+  <div class="box"><h2>3. Coût estimé <small class="hint">(avant toute génération)</small></h2><div id="cost"></div></div>
+
+  <!-- 4. Script, storyboard, prompts par variante -->
+  <div id="variants"></div>
+
+  <!-- 5. Textes d'accompagnement -->
+  <div class="box"><h2>5. Texte d'accompagnement <span id="platName"></span></h2><div id="captions"></div></div>
+
+  <p class="hint" style="text-align:center">Prochaines étapes : serveur (étape 3), génération d'une vidéo test (étape 4), historique (étape 5). Rien n'est publié sans ton accord.</p>
+</div>
+
+<script src="strategie-video.js"></script>
+<script>
+const S = STRATEGIE;
+const $ = id => document.getElementById(id);
+const KEY = "video-module-v1";
+const PLATS = ["TikTok", "Statut WhatsApp", "YouTube Shorts", "Page Facebook"];
+const SEGS = ["Accroche", "Démonstration", "Présentation", "Appel à l'action"];
+
+// ---------- Réglages mémorisés (dans ce navigateur) ----------
+let st = { hook: "A", cta: "1", dur: "20", plat: "TikTok", prix: "", modes: { 0: "ia", 1: "reel", 2: "ia", 3: "reel" } };
+try { Object.assign(st, JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+
+// ---------- Contenu par segment ----------
+const HOOK_SCREEN = { A: S.hooks[0].texte, B: S.hooks[1].texte, C: S.hooks[2].texte, D: "« Rédige une demande de congé. »" };
+const HOOK_VOICE = { A: S.hooks[0].texte, B: S.hooks[1].texte, C: S.hooks[2].texte, D: "(La personne dicte à son téléphone) « Rédige une demande de congé. »" };
+const HOOK_BEATS = {
+  A: ["Un bureau encombré de papiers, des mains qui écrivent lentement", "Gros plan sur une feuille qui se remplit à peine", "Le texte du hook apparaît à l'écran"],
+  B: ["Un téléphone posé sur une table", "L'écran du téléphone s'allume", "Le texte du hook apparaît à l'écran"],
+  C: ["Un chronomètre démarre", "Le chronomètre avance", "Un document terminé s'affiche sur le téléphone"],
+  D: ["Une personne parle à son téléphone", "Elle dit : « Rédige une demande de congé. »", "Le texte commence à apparaître"]
+};
+const BEATS = {
+  1: ["Écran réel du téléphone : ouvrir l'application d'IA", "Appuyer sur le micro ou taper la demande", "Dicter ou taper : « Rédige une demande de congé. »", "Le texte apparaît (accélère l'attente si besoin)", "Zoom sur le résultat prêt"],
+  2: ["Fond bleu et orange, le nom « L'IA Pratique pour Tous » apparaît", "La date et le lieu apparaissent", "« 40 places seulement » apparaît"],
+  3: ["Le texte d'appel à l'action apparaît", "Une icône de message pulse pour inviter à réserver"]
+};
+const CTA_SCREEN = { "1": "OUI + ton nom → 01 96 48 66 26", "2": "Réserve ta place avant le 27 octobre", "3": "40 places · 31 octobre · Réserve sur WhatsApp" };
+const VOICE = {
+  1: "Je demande à l'IA de rédiger une demande de congé… et le texte est prêt.",
+  2: "L'IA Pratique pour Tous : samedi 31 octobre, à Porto-Novo, 40 places seulement.",
+  3: () => S.cta.find(c => c.id === st.cta).texte
+};
+const SCREEN = {
+  1: "Sur un simple téléphone",
+  2: "L'IA Pratique pour Tous\nSamedi 31 octobre · ONG ADIL, Porto-Novo\n40 places seulement",
+  3: () => CTA_SCREEN[st.cta]
+};
+
+// Prompts Higgsfield (en anglais : les modèles vidéo comprennent généralement mieux ; à confirmer dans la documentation)
+const NOTEXT = " No text, no subtitles, no watermark, no logos.";
+const PROMPT_IA = {
+  0: h => ({
+    A: "Vertical 9:16 video, close-up of a cluttered office desk with piles of papers and a person's hands writing slowly with a pen, tired atmosphere, warm natural light, handheld camera, realistic.",
+    B: "Vertical 9:16 video, a smartphone lying on a wooden table, the screen lights up, soft light, the camera slowly pushes in, curious mood, realistic, screen content blurred and unreadable.",
+    C: "Vertical 9:16 video, a bright clean background with a digital stopwatch counting up quickly, then a finished document appearing on a smartphone, fast dynamic cut, realistic.",
+    D: "Vertical 9:16 video, a person from Benin speaking into a smartphone held in front of their mouth, friendly expression, bright shop or home setting, realistic, medium close-up."
+  }[h] + NOTEXT),
+  1: () => "Vertical 9:16 video, over-the-shoulder shot of a person holding a smartphone while text appears on the screen line by line, screen text blurred and unreadable, bright indoor light, realistic." + NOTEXT,
+  2: () => "Vertical 9:16 video, smooth abstract motion background in blue and orange gradients with soft moving shapes, a large empty space in the center for text added later, clean modern look." + NOTEXT,
+  3: () => "Vertical 9:16 video, the same blue and orange gradient background, a generic green speech-bubble icon (not a brand logo) gently pulsing in the center, clean modern look." + NOTEXT
+};
+const TOURNAGE = {
+  0: h => "Filme-toi ou filme la scène toi-même : " + HOOK_BEATS[h].join(" → ") + ". Vertical 9:16, lumière naturelle.",
+  1: () => "Enregistre l'écran de TON téléphone, en vrai : ouvre l'IA, dicte ou tape « Rédige une demande de congé. » et montre le résultat réel. Aucune scène inventée.",
+  2: () => "Ajoute le texte sur un fond uni bleu et orange avec ton application de montage (CapCut par exemple).",
+  3: () => "Ajoute le texte d'appel à l'action et l'icône dans ton application de montage."
+};
+
+// ---------- Découpage selon la durée ----------
+function segments(dur) {
+  const base = S.concept.decoupage; let t = 0;
+  return base.map((s, i) => {
+    const len = i === base.length - 1 ? dur - t : Math.max(1, Math.round((s.fin - s.debut) * dur / S.concept.dureeTotale));
+    const o = { i, nom: SEGS[i], debut: t, fin: t + len, len }; t += len; return o;
+  });
+}
+const beatOf = (arr, k, len) => arr[Math.min(arr.length - 1, Math.floor(k * arr.length / len))];
+const val = v => typeof v === "function" ? v() : v;
+const hookIds = () => st.hook === "all" ? S.hooks.map(h => h.id) : [st.hook];
+
+// ---------- Script seconde par seconde ----------
+function scriptRows(h) {
+  const rows = [];
+  segments(+st.dur).forEach(sg => {
+    for (let k = 0; k < sg.len; k++) {
+      const beats = sg.i === 0 ? HOOK_BEATS[h] : BEATS[sg.i];
+      rows.push({
+        sec: sg.debut + k + 1, seg: sg, first: k === 0,
+        visuel: beatOf(beats, k, sg.len),
+        voix: k === 0 ? (sg.i === 0 ? HOOK_VOICE[h] : val(VOICE[sg.i])) : "",
+        ecran: k === 0 ? (sg.i === 0 ? HOOK_SCREEN[h] : val(SCREEN[sg.i])) : ""
+      });
+    }
+  });
+  return rows;
+}
+const scriptText = h => scriptRows(h).map(r => "Seconde " + r.sec + " (" + r.seg.nom + ") : " + r.visuel + (r.voix ? "\n   Voix : " + r.voix : "") + (r.ecran ? "\n   Texte à l'écran : " + r.ecran.replace(/\n/g, " / ") : "")).join("\n");
+
+// ---------- Textes d'accompagnement ----------
+const LINK = S.reservation.lienReservation;
+const HOOK_LINE = { A: S.hooks[0].texte, B: S.hooks[1].texte, C: S.hooks[2].texte, D: "Tu dictes « Rédige une demande de congé. » et le texte apparaît tout de suite." };
+function caption(plat, h) {
+  const p = S.produit, rem = "Avance de " + S.reservation.avance + " remboursée intégralement si tu es empêché.";
+  const infos = p.nom + " : " + p.date + ", " + p.horaire.replace(/ \(.*\)/, "") + ", " + p.lieu + ". " + p.places + " places seulement.";
+  if (plat === "TikTok") return HOOK_LINE[h] + "\n\n" + infos + "\n👉 Réserve ta place : lien dans ma bio, ou envoie OUI + ton nom au " + S.reservation.whatsapp + ".\n\n#IA #IntelligenceArtificielle #Bénin #PortoNovo #FormationIA";
+  if (plat === "Statut WhatsApp") return "📱 " + p.nom + "\n" + p.date + " · 9h-13h · " + p.lieu + "\n" + p.places + " places seulement\n👉 Réserve ta place : " + LINK + "\n" + rem;
+  if (plat === "YouTube Shorts") return "TITRE : L'IA sur ton téléphone, expliquée simplement | Porto-Novo\n\nDESCRIPTION :\n" + HOOK_LINE[h] + "\n\n" + infos + "\n" + rem + "\n👉 Réserve ta place : " + LINK + "\n\n#Shorts #IA #Bénin #PortoNovo";
+  return "🎬 " + HOOK_LINE[h] + "\n\n" + infos + "\n" + rem + "\n👉 Réserve ta place : " + LINK + "\n\n(Texte à publier par toi-même sur ta Page ou ton profil, après avoir vu l'aperçu.)";
+}
+
+// ---------- Contrôle des règles ----------
+function allText(ids) {
+  const parts = [];
+  ids.forEach(h => { scriptRows(h).forEach(r => parts.push(r.voix, r.ecran)); parts.push(caption(st.plat, h)); });
+  return parts.join("\n").toLowerCase();
+}
+function findAny(text, words) { return words.filter(w => text.includes(w.toLowerCase())); }
+function checks(ids) {
+  const t = allText(ids), c = S.controles, res = [];
+  const m1 = findAny(t, c.motsInterdits);
+  res.push(m1.length ? ["bad", "Mots interdits trouvés : " + m1.join(", ")] : ["ok", "Aucun « Facebook » ni « Instagram » dans les textes."]);
+  const m2 = findAny(t, c.promessesDeGain);
+  res.push(m2.length ? ["bad", "Promesse de gain possible : " + m2.join(", ")] : ["ok", "Aucune promesse de gain d'argent."]);
+  const m3 = findAny(t, c.adresseSuspecte);
+  res.push(m3.length ? ["bad", "Adresse possible (à retirer) : " + m3.join(", ")] : ["ok", "Seul « ONG ADIL, Porto-Novo » est cité comme lieu."]);
+  res.push(S.reservation.lienReservation ? ["ok", "Lien de réservation renseigné."] : ["bad", "Lien de réservation manquant."]);
+  if (ids.some(h => h === "B" || h === "C")) res.push(["warn", "Les hooks B et C annoncent « 10 secondes » : le chrono doit être réel, sinon retire cette promesse."]);
+  const faceMode = [0, 1, 2, 3].some(i => st.modes[i] === "reel");
+  if (faceMode) res.push(["warn", "Segments « je filme moi-même » : le visage de Kouagou n'est utilisé que si tu fournis toi-même les images."]);
+  const maxJ = S.limites.maxVideosParJour;
+  if (ids.length > maxJ) res.push(["warn", ids.length + " variantes dépassent ton plafond de " + maxJ + " vidéos par jour."]);
+  return res;
+}
+
+// ---------- Coût estimé ----------
+function costHtml(ids) {
+  const segs = segments(+st.dur);
+  const gen = segs.filter(s => st.modes[s.i] === "ia");
+  const secs = gen.reduce((a, s) => a + s.len, 0);
+  const total = secs * ids.length;
+  const price = parseFloat(st.prix);
+  let h = "<p>Par vidéo : <b>" + gen.length + " clip(s) IA</b> = <b>" + secs + " secondes</b> générées (" + (gen.map(s => s.nom).join(", ") || "aucun segment IA") + ").<br>Nombre de variantes : <b>" + ids.length + "</b> → <b>" + total + " secondes</b> au total.</p>";
+  if (!isNaN(price) && st.prix !== "") h += '<p class="big">Coût estimé : ' + (total * price).toFixed(2) + ' $</p><p class="hint">= ' + total + ' s × ' + price + ' $ par seconde. C\'est une estimation basée sur le prix que tu as saisi ; le prix réel vient de Higgsfield.</p>';
+  else h += '<p class="warn"><b>À compléter :</b> je ne connais pas le prix réel. Saisis ci-dessus le prix par seconde affiché dans ta console Higgsfield. Je ne le devine pas.</p>';
+  h += '<p class="hint">Les échecs peuvent aussi consommer des crédits (non vérifié). Plafond de départ : ' + S.limites.maxVideosParJour + ' vidéos par jour, ' + S.limites.maxVideosParSession + ' par session.</p>';
+  return h;
+}
+
+// ---------- Helpers d'affichage ----------
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+async function copy(text, btn) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) { const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+  const old = btn.textContent; btn.textContent = "✅ Copié !"; btn.classList.add("done");
+  setTimeout(() => { btn.textContent = old; btn.classList.remove("done"); }, 1500);
+}
+function copyBtn(label, getText, sec) { const b = el("button", "copy" + (sec ? " sec" : ""), label); b.onclick = () => copy(getText(), b); return b; }
+
+function variantSection(h, idx) {
+  const hk = S.hooks.find(x => x.id === h);
+  const d = el("details"); if (idx === 0) d.open = true;
+  d.appendChild(el("summary", null, "Hook " + h + " — " + hk.type + " : " + HOOK_SCREEN[h]));
+
+  // Script
+  d.appendChild(el("h3", null, "4a. Script seconde par seconde"));
+  const wrap = el("div", "tablewrap"), tb = el("table");
+  const head = el("tr"); ["Sec.", "Ce qu'on voit", "Voix", "Texte à l'écran"].forEach(x => head.appendChild(el("th", null, x))); tb.appendChild(head);
+  scriptRows(h).forEach(r => {
+    if (r.first) { const sr = el("tr", "seg"); const td = el("td", null, r.seg.nom + " (" + r.seg.debut + "–" + r.seg.fin + " s)"); td.colSpan = 4; sr.appendChild(td); tb.appendChild(sr); }
+    const tr = el("tr"); tr.appendChild(el("td", "sec", r.sec)); tr.appendChild(el("td", null, r.visuel));
+    const v = el("td", null, r.voix || "·"); const e = el("td", null, r.ecran || "·"); e.style.whiteSpace = "pre-line"; tr.append(v, e); tb.appendChild(tr);
+  });
+  wrap.appendChild(tb); d.appendChild(wrap);
+  const cb = copyBtn("📋 Copier le script", () => scriptText(h), true); cb.style.marginTop = "8px"; d.appendChild(cb);
+
+  // Storyboard + prompts
+  d.appendChild(el("h3", null, "4b. Storyboard et prompts"));
+  d.appendChild(el("p", "hint", "Pour chaque plan, choisis « Généré par IA » (ça consomme des crédits) ou « Je filme / j'enregistre moi-même » (gratuit)."));
+  segments(+st.dur).forEach(sg => {
+    const c = el("div", "card");
+    c.appendChild(el("div", "t", "Plan " + (sg.i + 1) + " · " + sg.nom + " · " + sg.debut + "–" + sg.fin + " s (" + sg.len + " s)"));
+    const rows = scriptRows(h).filter(r => r.seg.i === sg.i);
+    c.appendChild(el("div", null, "Visuel : " + rows.map(r => r.visuel).filter((x, i, a) => a.indexOf(x) === i).join(" → ")));
+    c.appendChild(el("div", null, "Voix : " + rows[0].voix));
+    const ec = el("div", null, "Texte à l'écran : " + rows[0].ecran.replace(/\n/g, " / ")); c.appendChild(ec);
+    const sel = el("select"); [["ia", "Généré par IA (crédits)"], ["reel", "Je filme / j'enregistre moi-même (gratuit)"]].forEach(([v, l]) => { const o = el("option", null, l); o.value = v; sel.appendChild(o); });
+    sel.value = st.modes[sg.i]; sel.style.marginTop = "8px";
+    sel.onchange = () => { st.modes[sg.i] = sel.value; save(); render(); };
+    c.appendChild(sel);
+    if (st.modes[sg.i] === "ia") {
+      const pr = PROMPT_IA[sg.i](h) + " Duration: " + sg.len + " seconds.";
+      c.appendChild(el("div", "hint", "Prompt Higgsfield (le texte est ajouté ensuite au montage, pas par l'IA) :"));
+      c.appendChild(el("div", "prompt", pr)); c.appendChild(copyBtn("📋 Copier le prompt", () => pr, true));
+    } else {
+      c.appendChild(el("div", "hint", "À faire toi-même : " + TOURNAGE[sg.i](h)));
+    }
+    d.appendChild(c);
+  });
+  return d;
+}
+
+function render() {
+  const ids = hookIds();
+  $("fHook").value = st.hook; $("fCta").value = st.cta; $("fDur").value = st.dur; $("fPlat").value = st.plat; $("fPrix").value = st.prix;
+  $("platName").textContent = "· " + st.plat;
+
+  const ul = el("ul", "checks");
+  checks(ids).forEach(([k, t]) => ul.appendChild(el("li", k, (k === "ok" ? "✅ " : k === "warn" ? "⚠️ " : "❌ ") + t)));
+  $("checks").innerHTML = ""; $("checks").appendChild(ul);
+
+  $("cost").innerHTML = costHtml(ids);
+
+  const box = $("variants"); box.innerHTML = "";
+  const hd = el("div", "box"); hd.appendChild(el("h2", null, "4. Script, storyboard et prompts" + (ids.length > 1 ? " (" + ids.length + " variantes à comparer)" : "")));
+  ids.forEach((h, i) => hd.appendChild(variantSection(h, i)));
+  box.appendChild(hd);
+
+  const cap = $("captions"); cap.innerHTML = "";
+  ids.forEach(h => {
+    const c = el("div", "card"); c.appendChild(el("div", "t", "Hook " + h));
+    const txt = caption(st.plat, h); c.appendChild(el("div", "prompt", txt)); c.appendChild(copyBtn("📋 Copier le texte", () => txt, true)); cap.appendChild(c);
+  });
+}
+
+// ---------- Formulaire ----------
+function opt(sel, v, l) { const o = el("option", null, l); o.value = v; sel.appendChild(o); }
+opt($("fConcept"), "miracle", S.concept.nom + " (recommandé)");
+opt($("fHook"), "all", "Les 4 variantes (A, B, C, D)");
+S.hooks.forEach(h => opt($("fHook"), h.id, "Hook " + h.id + " — " + h.type));
+S.cta.forEach(c => opt($("fCta"), c.id, "CTA " + c.id + " — " + c.texte));
+PLATS.forEach(p => opt($("fPlat"), p, p));
+$("fHook").onchange = e => { st.hook = e.target.value; save(); render(); };
+$("fCta").onchange = e => { st.cta = e.target.value; save(); render(); };
+$("fDur").onchange = e => { st.dur = e.target.value; save(); render(); };
+$("fPlat").onchange = e => { st.plat = e.target.value; save(); render(); };
+$("fPrix").oninput = e => { st.prix = e.target.value; save(); $("cost").innerHTML = costHtml(hookIds()); };
+render();
+</script>
+</body>
+</html>

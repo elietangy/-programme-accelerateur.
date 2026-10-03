@@ -3,7 +3,7 @@
 // Source : brief-video-ia-pratique-pour-tous.md + tes réponses.
 // Ce fichier est la SEULE source de la stratégie : le module vidéo
 // (et plus tard les posts) lisent ces valeurs. Ne contient AUCUNE clé.
-// Les textes marqués « À COMPLÉTER » attendent une information de ta part.
+// Style des textes : TUTOIEMENT (choix de Kouagou).
 // =====================================================================
 
 const STRATEGIE = {
@@ -31,7 +31,7 @@ const STRATEGIE = {
 
   // ---------- Réservation ----------
   reservation: {
-    lienReservation: "",                    // À COMPLÉTER : le lien sur lequel on clique pour réserver
+    lienReservation: "https://kouagou-mangou.tinypages.co/lia-pour-tous",   // lien sur lequel on clique pour réserver
     whatsapp: "01 96 48 66 26",
     messageWhatsApp: "OUI + NOM",
     parcours: [
@@ -80,20 +80,19 @@ const STRATEGIE = {
     dureeTotale: 20
   },
 
-  // ---------- Hooks à tester (texte du brief, inchangé) ----------
-  // NB : le brief écrit en « vous ». À CONFIRMER : « tu » ou « vous » pour les vidéos.
+  // ---------- Hooks à tester (texte du brief, passé au « tu ») ----------
   hooks: [
-    { id: "A", type: "Problème",      texte: "Vous passez encore une heure à rédiger un document ?" },
-    { id: "B", type: "Curiosité",     texte: "Ce que vous allez voir a été créé en 10 secondes sur un simple téléphone." },
+    { id: "A", type: "Problème",      texte: "Tu passes encore une heure à rédiger un document ?" },
+    { id: "B", type: "Curiosité",     texte: "Ce que tu vas voir a été créé en 10 secondes sur un simple téléphone." },
     { id: "C", type: "Résultat",      texte: "Une demande. Dix secondes. Travail terminé." },
     { id: "D", type: "Démonstration", texte: "Une personne dit « Rédige une demande de congé. » Le texte apparaît instantanément." }
   ],
 
   // ---------- Appels à l'action à tester (texte du brief) ----------
   cta: [
-    { id: "1", texte: "Envoyez OUI + votre nom au 01 96 48 66 26." },
-    { id: "2", texte: "Réservez votre place avant le 27 octobre." },
-    { id: "3", texte: "40 places seulement. Samedi 31 octobre à Porto-Novo. Réservez maintenant sur WhatsApp." }
+    { id: "1", texte: "Envoie OUI + ton nom au 01 96 48 66 26." },
+    { id: "2", texte: "Réserve ta place avant le 27 octobre." },
+    { id: "3", texte: "40 places seulement. Samedi 31 octobre à Porto-Novo. Réserve maintenant sur WhatsApp." }
   ],
 
   // ---------- Formats et plateformes ----------

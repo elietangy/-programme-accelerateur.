@@ -42,6 +42,18 @@
   summary { cursor:pointer; font-weight:700; }
   .hint { color:var(--muted); font-size:.9em; margin:6px 0; }
   .big { font-size:1.2em; font-weight:700; }
+  textarea { width:100%; min-height:210px; padding:10px; border:1px solid #cbd5e0; border-radius:8px; font:inherit; font-size:.9em; background:#fff; color:var(--txt); resize:vertical; }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+  .actions button { border-radius:8px; padding:10px 14px; font-size:.95em; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--txt); }
+  .actions button.copy { border:0; background:var(--brand); color:#fff; font-weight:700; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .confirm { border:2px solid var(--warn); background:#fffbe6; border-radius:10px; padding:14px; margin:10px 0; }
+  .confirm label { display:block; margin:8px 0; cursor:pointer; }
+  .state { border:1px solid var(--line); border-radius:8px; padding:10px; margin:8px 0; background:#f8fafc; font-size:.92em; }
+  .job { border:1px solid var(--brand); border-radius:10px; padding:12px; margin:10px 0; background:#eef4ff; }
+  .job video { width:100%; max-width:340px; border-radius:8px; display:block; margin:8px 0; background:#000; }
+  .job a.dl { display:inline-block; background:var(--ok); color:#fff; padding:9px 14px; border-radius:8px; text-decoration:none; font-weight:700; }
+  [hidden] { display:none !important; }
 </style>
 </head>
 <body>
@@ -49,7 +61,7 @@
   <div class="top"><a href="posts.html">← Mes posts du jour</a></div>
   <h1>🎬 Module vidéo</h1>
   <p class="sub">« Le Miracle du Téléphone » · L'IA Pratique pour Tous</p>
-  <div class="banner">🔒 <b>Aperçu seulement.</b> Cette page ne génère aucune vidéo, ne publie rien et ne dépense aucun crédit. Elle prépare le script, le storyboard, les prompts et les textes à copier.</div>
+  <div class="banner">🔒 <b>Cette page ne publie rien.</b> Les sections 1 à 5 préparent le script, le storyboard, les prompts et les textes, sans aucun coût. Seule la section 6 peut lancer une génération, après ta confirmation.</div>
 
   <!-- 1. Formulaire -->
   <div class="box">
@@ -59,7 +71,7 @@
       <div><label class="f">Hook</label><select id="fHook"></select></div>
       <div><label class="f">Appel à l'action (CTA)</label><select id="fCta"></select></div>
       <div><label class="f">Durée</label>
-        <select id="fDur"><option value="15">15 secondes</option><option value="20" selected>20 secondes (recommandé)</option><option value="30">30 secondes</option></select></div>
+        <select id="fDur"><option value="10">10 secondes (test économique)</option><option value="15">15 secondes</option><option value="20" selected>20 secondes (recommandé)</option><option value="30">30 secondes</option></select></div>
       <div><label class="f">Plateforme <small>(pour les textes d'accompagnement)</small></label><select id="fPlat"></select></div>
       <div><label class="f">Prix par seconde de vidéo IA, en dollars <small>(à lire dans ta console Higgsfield)</small></label>
         <input type="number" id="fPrix" min="0" step="0.001" placeholder="Ex : 0.05"></div>
@@ -78,7 +90,30 @@
   <!-- 5. Textes d'accompagnement -->
   <div class="box"><h2>5. Texte d'accompagnement <span id="platName"></span></h2><div id="captions"></div></div>
 
-  <p class="hint" style="text-align:center">Prochaines étapes : serveur (étape 3), génération d'une vidéo test (étape 4), historique (étape 5). Rien n'est publié sans ton accord.</p>
+  <!-- 6. Génération -->
+  <div class="box" id="genBox">
+    <h2>6. Générer la vidéo avec Higgsfield <small class="hint">(en un clic, sans copier le prompt)</small></h2>
+    <div id="srv"></div>
+    <div class="grid">
+      <div><label class="f">Hook à générer</label><select id="gHook"></select></div>
+      <div><label class="f">Résolution <small>(plus bas = moins cher)</small></label>
+        <select id="gRes"><option value="480p">480p</option><option value="720p" selected>720p</option><option value="1080p">1080p</option></select></div>
+    </div>
+    <label class="f"><input type="checkbox" id="gAudio" checked> Générer le son (voix et ambiance)</label>
+    <label class="f">Prompt envoyé à Higgsfield <small>(tu peux le modifier)</small></label>
+    <textarea id="gPrompt"></textarea>
+    <div id="gCost" class="hint"></div>
+    <div class="actions">
+      <button id="gReset">↺ Recalculer le prompt</button>
+      <button id="gGo" class="copy">🎬 Générer UNE vidéo test…</button>
+    </div>
+    <div id="gConfirm" class="confirm" hidden></div>
+    <div id="gJob"></div>
+    <h3>Historique des vidéos</h3>
+    <div id="gHist" class="hint">Aucune vidéo pour l'instant.</div>
+  </div>
+
+  <p class="hint" style="text-align:center">Rien n'est publié sans ton accord. Une génération n'est lancée que si tu la confirmes.</p>
 </div>
 
 <script src="strategie-video.js"></script>
@@ -144,7 +179,7 @@ const TOURNAGE = {
 function segments(dur) {
   const base = S.concept.decoupage; let t = 0;
   return base.map((s, i) => {
-    const len = i === base.length - 1 ? dur - t : Math.max(1, Math.round((s.fin - s.debut) * dur / S.concept.dureeTotale));
+    const len = i === base.length - 1 ? dur - t : Math.max(1, Math.floor((s.fin - s.debut) * dur / S.concept.dureeTotale));
     const o = { i, nom: SEGS[i], debut: t, fin: t + len, len }; t += len; return o;
   });
 }
@@ -273,7 +308,8 @@ function variantSection(h, idx) {
   return d;
 }
 
-function render() {
+function render() { renderBase(); refreshGen(); }
+function renderBase() {
   const ids = hookIds();
   $("fHook").value = st.hook; $("fCta").value = st.cta; $("fDur").value = st.dur; $("fPlat").value = st.plat; $("fPrix").value = st.prix;
   $("platName").textContent = "· " + st.plat;
@@ -307,8 +343,156 @@ $("fHook").onchange = e => { st.hook = e.target.value; save(); render(); };
 $("fCta").onchange = e => { st.cta = e.target.value; save(); render(); };
 $("fDur").onchange = e => { st.dur = e.target.value; save(); render(); };
 $("fPlat").onchange = e => { st.plat = e.target.value; save(); render(); };
-$("fPrix").oninput = e => { st.prix = e.target.value; save(); $("cost").innerHTML = costHtml(hookIds()); };
+$("fPrix").oninput = e => { st.prix = e.target.value; save(); $("cost").innerHTML = costHtml(hookIds()); refreshGen(); };
+// =====================================================================
+// 6. GÉNÉRATION VIA LE SERVEUR LOCAL (la clé reste dans ton fichier .env)
+// =====================================================================
+const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
+const API = LOCAL ? location.origin : "";
+const STATUT_FR = { queued: "en attente", in_progress: "en cours", completed: "terminée", failed: "échouée", nsfw: "refusée (contenu)" };
+let userPrompt = null, srv = null, timer = null, currentJob = null;
+
+function sceneText(i, h) { return PROMPT_IA[i](h).replace(/^Vertical 9:16 video, /, "").replace(NOTEXT, "").replace(/\.$/, ""); }
+function buildMasterPrompt(h) {
+  const dur = +st.dur;
+  const parts = segments(dur).map(sg => "Seconds " + sg.debut + "-" + sg.fin + ": " + sceneText(sg.i, h) + ".");
+  let p = "Vertical 9:16 realistic social video, " + dur + " seconds. No on-screen text, no subtitles, no logos, no watermark. " + parts.join(" ");
+  if (h === "D") p += " In the first seconds the person says in French: \"Rédige une demande de congé.\"";
+  return p + " Warm natural light, handheld camera, fast cuts.";
+}
+function genCostText() {
+  const price = parseFloat(st.prix);
+  if (isNaN(price) || st.prix === "") return "Coût : non estimé (saisis le prix par seconde en haut de la page, section 1). La durée sera de " + st.dur + " secondes.";
+  return "Coût estimé : " + (price * +st.dur).toFixed(2) + " $ (" + st.dur + " s × " + price + " $ par seconde). Estimation basée sur ton prix saisi.";
+}
+function srvReady() { return srv && (srv.simulation || (srv.cleConfiguree && srv.reglageComplet)) && srv.restantJour > 0 && srv.restantSession > 0; }
+
+function refreshGen() {
+  if (!$("gPrompt")) return;
+  if (!userPrompt) $("gPrompt").value = buildMasterPrompt($("gHook").value || "D");
+  $("gCost").textContent = genCostText();
+  $("gGo").disabled = !srvReady();
+}
+
+async function loadSrv() {
+  const box = $("srv"); box.innerHTML = "";
+  const line = (cls, t) => { const d = el("div", "state " + cls, t); box.appendChild(d); };
+  if (!LOCAL) { line("warn", "⚠️ Cette page est ouverte depuis Internet : elle ne peut pas parler à ton serveur. Pour générer, lance demarrer.bat puis ouvre http://localhost:3000/video.html"); srv = null; refreshGen(); return; }
+  try { srv = await (await fetch(API + "/api/etat")).json(); }
+  catch (e) { srv = null; line("bad", "❌ Le serveur ne répond pas. Lance demarrer.bat (dans le dossier serveur) et laisse la fenêtre noire ouverte."); refreshGen(); return; }
+  line(srv.simulation ? "warn" : "ok", srv.simulation ? "🧪 Mode SIMULATION : aucun appel à Higgsfield, aucun coût. Pour le vrai service, mets MODE_SIMULATION=0 dans .env." : "💳 Mode RÉEL : chaque génération dépense de l'argent réel.");
+  line(srv.cleConfiguree ? "ok" : "warn", srv.cleConfiguree ? "🔑 Clé Higgsfield trouvée (jamais affichée)." : "🔑 Aucune clé dans .env (suis le guide LISEZ-MOI.md, étape E).");
+  line(srv.reglageComplet ? "ok" : "warn", srv.reglageComplet ? "⚙️ Réglage Higgsfield présent." : "⚙️ Réglage Higgsfield incomplet (higgsfield-reglage.json).");
+  line(srv.restantJour > 0 && srv.restantSession > 0 ? "ok" : "bad", "📊 Plafonds : il reste " + srv.restantJour + " vidéo(s) aujourd'hui (sur " + srv.plafondJour + ") et " + srv.restantSession + " pour cette session (sur " + srv.plafondSession + ").");
+  refreshGen(); loadHist();
+}
+
+function openConfirm() {
+  const box = $("gConfirm"); box.innerHTML = ""; box.hidden = false;
+  const prompt = $("gPrompt").value.trim(), h = $("gHook").value, res = $("gRes").value, audio = $("gAudio").checked;
+  box.appendChild(el("h3", null, "Confirme avant de lancer"));
+  const lines = ["Hook " + h + " · " + st.dur + " secondes · format 9:16 · " + res + " · son " + (audio ? "oui" : "non"), "Modèle : Seedance 2.5 (texte vers vidéo)", genCostText(), "Il te reste " + srv.restantJour + " vidéo(s) aujourd'hui."];
+  lines.forEach(t => box.appendChild(el("div", null, "• " + t)));
+  const bad = findAny(prompt.toLowerCase(), S.controles.motsInterdits.concat(S.controles.promessesDeGain, S.controles.adresseSuspecte));
+  if (bad.length) box.appendChild(el("div", "bad", "⚠️ Le prompt contient : " + bad.join(", ") + ". Vérifie tes règles."));
+  const sim = srv.simulation, noPrice = isNaN(parseFloat(st.prix)) || st.prix === "";
+  const l1 = el("label"); const c1 = el("input"); c1.type = "checkbox"; l1.append(c1, document.createTextNode(sim ? " Je confirme cette simulation (aucun coût)." : " Je confirme cette génération : elle dépense de l'argent réel."));
+  box.appendChild(l1);
+  let c2 = null;
+  if (!sim && noPrice) { const l2 = el("label"); c2 = el("input"); c2.type = "checkbox"; l2.append(c2, document.createTextNode(" Je lance sans estimation du coût (je n'ai pas saisi le prix).")); box.appendChild(l2); }
+  const act = el("div", "actions"); const go = el("button", "copy", "Oui, lancer cette vidéo"); go.disabled = true; const no = el("button", null, "Annuler");
+  const upd = () => { go.disabled = !(c1.checked && (!c2 || c2.checked)); };
+  c1.onchange = upd; if (c2) c2.onchange = upd;
+  no.onclick = () => { box.hidden = true; };
+  go.onclick = async () => {
+    go.disabled = true; go.textContent = "Envoi…";
+    try {
+      const r = await fetch(API + "/api/generer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt, duree: +st.dur, format: "9:16", resolution: res, audio, hook: h, segment: "vidéo complète", coutEstime: isNaN(parseFloat(st.prix)) ? null : parseFloat(st.prix) * +st.dur, confirme: true }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.erreur || "Erreur inconnue");
+      box.hidden = true; startJob(j.id, j);
+    } catch (e) { box.hidden = true; showJobError(e.message); }
+    loadSrv();
+  };
+  act.append(go, no); box.appendChild(act);
+  box.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function showJobError(msg) {
+  const j = $("gJob"); j.innerHTML = "";
+  const d = el("div", "job"); d.style.borderColor = "var(--bad)";
+  d.appendChild(el("b", "bad", "❌ Pas de génération lancée"));
+  d.appendChild(el("div", null, msg));
+  d.appendChild(el("div", "hint", "Rien n'est relancé automatiquement. Décide si tu veux réessayer."));
+  j.appendChild(d);
+}
+
+function renderJob(j) {
+  const box = $("gJob"); box.innerHTML = "";
+  const d = el("div", "job");
+  d.appendChild(el("b", null, "🎬 Vidéo " + j.id));
+  d.appendChild(el("div", null, "État : " + (j.libelle || STATUT_FR[j.statut] || j.statut) + (j.simulation ? " (simulation)" : "")));
+  if (j.note) d.appendChild(el("div", "hint", j.note));
+  if (j.statut === "completed" && j.fichierDisponible) {
+    const v = el("video"); v.controls = true; v.playsInline = true; v.src = API + "/api/telecharger/" + encodeURIComponent(j.id); d.appendChild(v);
+    const a = el("a", "dl", "⬇️ Télécharger la vidéo"); a.href = API + "/api/telecharger/" + encodeURIComponent(j.id); a.download = "video-" + j.id + ".mp4"; d.appendChild(a);
+    d.appendChild(el("div", "hint", "Regarde-la avant de publier. Rien n'est publié par l'application."));
+  } else if (j.statut === "queued" || j.statut === "in_progress") {
+    d.appendChild(el("div", "hint", "La page vérifie l'état toutes les 6 secondes. Ça peut prendre quelques minutes."));
+  } else if (j.statut === "failed" || j.statut === "nsfw") {
+    d.appendChild(el("div", "bad", "La génération n'a pas abouti. Rien n'est relancé automatiquement."));
+  }
+  box.appendChild(d);
+}
+
+function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+async function check(id) {
+  try {
+    const r = await fetch(API + "/api/statut/" + encodeURIComponent(id)); const j = await r.json();
+    if (!r.ok) throw new Error(j.erreur || "Erreur");
+    if (id !== currentJob) return;
+    renderJob(j);
+    if (["completed", "failed", "nsfw"].includes(j.statut)) { stopTimer(); loadHist(); }
+  } catch (e) { if (id === currentJob) { stopTimer(); showJobError(e.message); if (st.lastJob === id) { st.lastJob = null; save(); } } }
+}
+function startJob(id, first) {
+  currentJob = id; stopTimer();
+  try { st.lastJob = id; save(); } catch (e) {}
+  renderJob(first);
+  timer = setInterval(() => check(id), 6000);
+  setTimeout(() => check(id), 1500);
+}
+
+async function loadHist() {
+  const box = $("gHist"); if (!LOCAL) return;
+  try {
+    const list = (await (await fetch(API + "/api/historique")).json()).slice().reverse();
+    box.innerHTML = ""; if (!list.length) { box.textContent = "Aucune vidéo pour l'instant."; return; }
+    const wrap = el("div", "tablewrap"), tb = el("table"), hd = el("tr");
+    ["Date", "Hook", "Durée", "Statut", ""].forEach(x => hd.appendChild(el("th", null, x))); tb.appendChild(hd);
+    list.forEach(g => {
+      const tr = el("tr");
+      tr.appendChild(el("td", null, new Date(g.creeLe).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })));
+      tr.appendChild(el("td", null, g.hook || "·")); tr.appendChild(el("td", null, g.duree ? g.duree + " s" : "·"));
+      tr.appendChild(el("td", null, (STATUT_FR[g.statut] || g.statut) + (g.simulation ? " (simu.)" : "")));
+      const td = el("td"); const b = el("button", "copy sec", "Voir"); b.onclick = () => startJob(g.id, { id: g.id, statut: g.statut }); td.appendChild(b); tr.appendChild(td); tb.appendChild(tr);
+    });
+    wrap.appendChild(tb); box.appendChild(wrap);
+    box.appendChild(el("div", "hint", "Dans cette liste tu retrouves le hook utilisé pour chaque vidéo. Compare ensuite tes vues réelles hook par hook."));
+  } catch (e) { /* serveur éteint : rien à afficher */ }
+}
+
+S.hooks.forEach(h => opt($("gHook"), h.id, "Hook " + h.id + " — " + h.type));
+$("gHook").value = st.genHook || "D";
+$("gHook").onchange = e => { st.genHook = e.target.value; save(); userPrompt = null; refreshGen(); };
+$("gPrompt").oninput = e => { userPrompt = e.target.value; };
+$("gReset").onclick = () => { userPrompt = null; refreshGen(); };
+$("gGo").onclick = () => { if (srvReady()) openConfirm(); };
+['fDur'].forEach(id => $(id).addEventListener("change", () => { userPrompt = null; refreshGen(); }));
+
 render();
+loadSrv();
+if (LOCAL && st.lastJob) { currentJob = st.lastJob; check(st.lastJob); }
 </script>
 </body>
 </html>

@@ -123,6 +123,10 @@ function trouverUrlVideo(obj) {
   if (obj && typeof obj === 'object') { for (const v of Object.values(obj)) { const u = trouverUrlVideo(v); if (u) return u; } }
   return null;
 }
+function urlDeLaVideo(json) {
+  if (json && json.video && typeof json.video.url === 'string' && /^https?:\/\//.test(json.video.url)) return json.video.url;
+  return trouverUrlVideo(json);
+}
 const LIBELLES = { queued: 'en attente', in_progress: 'en cours', completed: 'terminée', failed: 'échouée', nsfw: 'refusée (contenu)' };
 
 // ---------- Réponses HTTP ----------
@@ -155,11 +159,14 @@ async function generer(demande) {
   const duree = Number(demande.duree);
   if (!(duree >= 1 && duree <= 60)) throw erreur(400, "La durée doit être comprise entre 1 et 60 secondes.");
   const format = typeof demande.format === 'string' && demande.format ? demande.format : '9:16';
+  if (!['9:16', '16:9', '1:1', '4:3', '3:4', '21:9'].includes(format)) throw erreur(400, "Format d'image non reconnu.");
+  const resolution = ['480p', '720p', '1080p'].includes(demande.resolution) ? demande.resolution : '720p';
+  const audio = demande.audio !== false;
   const e = etat();
   if (e.restantJour <= 0) throw erreur(429, "Plafond du jour atteint (" + MAX_JOUR + " vidéo(s)). Rien n'est lancé. Tu peux changer MAX_VIDEOS_PAR_JOUR dans .env.");
   if (e.restantSession <= 0) throw erreur(429, "Plafond de la session atteint (" + MAX_SESSION + " vidéo(s)). Redémarre le serveur pour une nouvelle session, si tu le décides.");
 
-  const base = { hook: String(demande.hook || ''), segment: String(demande.segment || ''), prompt, duree, format, coutEstime: demande.coutEstime ?? null, creeLe: new Date().toISOString() };
+  const base = { hook: String(demande.hook || ''), segment: String(demande.segment || ''), prompt, duree, format, resolution, audio, coutEstime: demande.coutEstime ?? null, creeLe: new Date().toISOString() };
 
   if (SIMULATION) {
     const id = 'simu-' + Date.now();
@@ -171,7 +178,7 @@ async function generer(demande) {
   const r = reglage();
   if (!r.complet) throw erreur(503, "Le réglage Higgsfield est incomplet (fichier higgsfield-reglage.json). Il faut y copier le chemin du modèle et les champs depuis la documentation officielle. Aucune demande n'a été envoyée.");
 
-  const rep = await appelHiggsfield('POST', r.endpointModele, remplacer(r.corps, { prompt, duree, format }));
+  const rep = await appelHiggsfield('POST', r.endpointModele, remplacer(r.corps, { prompt, duree, format, resolution, audio }));
   if (!rep.ok) throw erreur(rep.statut >= 400 && rep.statut < 600 ? rep.statut : 502, messageHiggsfield(rep));
   const id = rep.json && (rep.json.request_id || rep.json.id);
   if (!id) throw erreur(502, "Higgsfield a répondu sans numéro de demande. Je ne peux pas suivre cette vidéo. Réponse : " + (rep.texte || '').slice(0, 300));
@@ -183,7 +190,8 @@ async function generer(demande) {
 async function statut(id) {
   if (!/^[\w.-]{1,100}$/.test(id)) throw erreur(400, "Numéro de demande invalide.");
   const g = generations().find(x => x.id === id);
-  if (g && g.simulation) {
+  if (!g) throw erreur(404, "Cette génération est inconnue de ce serveur (elle n'est pas dans l'historique).");
+  if (g.simulation) {
     const age = (Date.now() - Date.parse(g.creeLe)) / 1000;
     const s = age < 3 ? 'queued' : age < 6 ? 'in_progress' : 'completed';
     sauverGeneration({ id, statut: s });
@@ -193,7 +201,7 @@ async function statut(id) {
   const rep = await appelHiggsfield('GET', '/requests/' + encodeURIComponent(id) + '/status');
   if (!rep.ok) throw erreur(rep.statut >= 400 && rep.statut < 600 ? rep.statut : 502, messageHiggsfield(rep));
   const s = String(rep.json && rep.json.status || 'inconnu');
-  const url = s === 'completed' ? trouverUrlVideo(rep.json) : null;
+  const url = s === 'completed' ? urlDeLaVideo(rep.json) : null;
   sauverGeneration({ id, statut: s, urlVideo: url || undefined });
   const out = { id, statut: s, libelle: LIBELLES[s] || s, fichierDisponible: !!url };
   if (s === 'completed' && !url) out.note = "Terminée, mais je n'ai pas trouvé l'adresse de la vidéo dans la réponse. Réponse brute : " + JSON.stringify(rep.json).slice(0, 500);
@@ -246,7 +254,7 @@ const serveur = http.createServer(async (req, res) => {
     const p = url.pathname;
     if (req.method === 'GET' && p === '/api/etat') return repondre(res, 200, etat());
     if (req.method === 'POST' && p === '/api/generer') return repondre(res, 200, await generer(await lireCorps(req)));
-    if (req.method === 'GET' && p === '/api/historique') return repondre(res, 200, generations().map(g => ({ id: g.id, hook: g.hook, segment: g.segment, statut: g.statut, creeLe: g.creeLe, simulation: !!g.simulation })));
+    if (req.method === 'GET' && p === '/api/historique') return repondre(res, 200, generations().map(g => ({ id: g.id, hook: g.hook, segment: g.segment, duree: g.duree, resolution: g.resolution, statut: g.statut, creeLe: g.creeLe, simulation: !!g.simulation })));
     let m;
     if (req.method === 'GET' && (m = p.match(/^\/api\/statut\/(.+)$/))) return repondre(res, 200, await statut(m[1]));
     if (req.method === 'GET' && (m = p.match(/^\/api\/telecharger\/(.+)$/))) return await telecharger(m[1], res);

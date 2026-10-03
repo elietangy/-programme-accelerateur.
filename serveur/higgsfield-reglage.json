@@ -1,12 +1,17 @@
 {
   "_aide": [
-    "Ce fichier dit au serveur COMMENT parler à Higgsfield pour créer une vidéo.",
-    "Je ne connais pas encore ces valeurs : elles doivent venir de la documentation officielle de Higgsfield (page du modèle choisi).",
-    "endpointModele : le chemin du modèle vidéo, qui commence par une barre oblique. Ex. de forme : /nom-du-modele (à copier depuis la documentation).",
-    "corps : les champs envoyés à Higgsfield, avec les noms EXACTS de la documentation.",
-    "Dans les valeurs, tu peux écrire {{prompt}}, {{duree}} (en secondes) et {{format}} (ex. 9:16) : le serveur les remplace.",
-    "Tant que endpointModele ou corps sont vides, le serveur refuse de générer avec le vrai service (le mode simulation reste possible)."
+    "Ce fichier dit au serveur COMMENT demander une vidéo à Higgsfield.",
+    "Sources lues : les README officiels des bibliothèques Higgsfield (github.com/higgsfield-ai) et un extrait de la page officielle du modèle Seedance 2.5 vue via une recherche. Les pages de documentation elles-mêmes n'ont pas pu être ouvertes : les noms ci-dessous restent À VÉRIFIER au premier essai.",
+    "endpointModele : chemin du modèle vidéo (ici Seedance 2.5, texte vers vidéo).",
+    "corps : les champs envoyés. {{prompt}}, {{duree}}, {{format}}, {{resolution}} et {{audio}} sont remplacés par le serveur.",
+    "Si Higgsfield refuse un champ, le message d'erreur s'affichera en français sur la page : on corrigera alors ce fichier, sans rien relancer automatiquement."
   ],
-  "endpointModele": "",
-  "corps": {}
+  "endpointModele": "/bytedance/seedance-2.5/text-to-video",
+  "corps": {
+    "prompt": "{{prompt}}",
+    "duration": "{{duree}}",
+    "aspect_ratio": "{{format}}",
+    "resolution": "{{resolution}}",
+    "generate_audio": "{{audio}}"
+  }
 }

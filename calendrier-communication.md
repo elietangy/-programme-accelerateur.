@@ -106,6 +106,5 @@ L'accompagnement fait partie de ce qui a été promis : il doit être tenu.
 
 ## Points à régler
 
-1. **`formation-ia.html` est en contradiction avec la stratégie.** Son appel à l'action dit encore « envoie OUI sur WhatsApp au 01 96 48 66 26 », alors que la règle est de tout renvoyer vers le lien de réservation. À corriger avant de publier le moindre post.
-2. **Places restantes** : à mettre à jour à la main, il ne faut jamais annoncer un nombre qui n'est pas réel.
-3. **Témoignages** : il n'y en aura pas avant la première session. Après le 31 octobre, uniquement de vrais retours, avec l'accord de la personne.
+1. **Places restantes** : à mettre à jour à la main, il ne faut jamais annoncer un nombre qui n'est pas réel.
+2. **Témoignages** : il n'y en aura pas avant la première session. Après le 31 octobre, uniquement de vrais retours, avec l'accord de la personne.

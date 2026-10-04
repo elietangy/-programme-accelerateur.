@@ -422,7 +422,7 @@ function build(p, o, left, open) {
   if (isVideo(f)) return buildVideo(f, p, o, left, open);
   return buildFacebook(p, o, left, open);
 }
-const imgPrompt = (p, o) => "Crée une image pour accompagner un post sur les réseaux sociaux. " + p[2] + "\nStyle : illustration moderne et lumineuse, " + (o.ambiance || "couleurs vives et chaleureuses") + ", format carré 1:1. N'écris aucun texte dans l'image.";
+const imgPrompt = (p, o) => "Crée une image pour accompagner un post sur les réseaux sociaux. " + p[2] + "\nStyle : illustration moderne et lumineuse, " + (o.ambiance || "couleurs vives et chaleureuses") + ", format carré 1:1. Toutes les personnes sont des Africains noirs béninois à la peau foncée, jamais de personnes blanches ou européennes. N'écris aucun texte dans l'image.";
 
 async function copy(text, btn, label) {
   try { await navigator.clipboard.writeText(text); }

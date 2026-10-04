@@ -112,6 +112,7 @@ const STRATEGIE = {
     "Ne jamais inventer d'adresse : écrire seulement « ONG ADIL, Porto-Novo ».",
     "Ne pas citer Facebook ni Instagram à l'intérieur des vidéos.",
     "Tout renvoie vers le lien de réservation (lien dans la bio pour les vidéos). Pas de numéro de téléphone, pas de « OUI + nom ».",
+    "Public africain : toute personne montrée dans une vidéo ou une image est une personne noire africaine (Bénin), jamais blanche ou européenne.",
     "Ne cloner aucune autre personne et n'imiter aucune voix existante.",
     "Ne copier aucune vidéo, voix ou visuel d'un autre créateur.",
     "L'application génère seulement : elle ne publie rien, ne partage rien.",

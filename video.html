@@ -157,14 +157,16 @@ const SCREEN = {
 
 // Prompts Higgsfield (en anglais : les modèles vidéo comprennent généralement mieux ; à confirmer dans la documentation)
 const NOTEXT = " No text, no subtitles, no watermark, no logos.";
+// Casting : public africain. Toute personne visible est une personne noire africaine (Bénin), jamais blanche ou européenne.
+const CAST = " Every person shown is a Black West African from Benin, dark brown skin, natural African features, everyday Beninese clothing and surroundings (Porto-Novo). Never white or European people.";
 const PROMPT_IA = {
   0: h => ({
-    A: "Vertical 9:16 video, close-up of a cluttered office desk with piles of papers and a person's hands writing slowly with a pen, tired atmosphere, warm natural light, handheld camera, realistic.",
+    A: "Vertical 9:16 video, close-up of a cluttered office desk with piles of papers and a Black African person's dark-skinned hands writing slowly with a pen, tired atmosphere, warm natural light, handheld camera, realistic.",
     B: "Vertical 9:16 video, a smartphone lying on a wooden table, the screen lights up, soft light, the camera slowly pushes in, curious mood, realistic, screen content blurred and unreadable.",
     C: "Vertical 9:16 video, a bright clean background with a digital stopwatch counting up quickly, then a finished document appearing on a smartphone, fast dynamic cut, realistic.",
-    D: "Vertical 9:16 video, a person from Benin speaking into a smartphone held in front of their mouth, friendly expression, bright shop or home setting, realistic, medium close-up."
+    D: "Vertical 9:16 video, a Black African person from Benin, dark skin, speaking into a smartphone held in front of their mouth, friendly expression, bright shop or home setting, realistic, medium close-up."
   }[h] + NOTEXT),
-  1: () => "Vertical 9:16 video, over-the-shoulder shot of a person holding a smartphone while text appears on the screen line by line, screen text blurred and unreadable, bright indoor light, realistic." + NOTEXT,
+  1: () => "Vertical 9:16 video, over-the-shoulder shot of a Black African person from Benin holding a smartphone while text appears on the screen line by line, screen text blurred and unreadable, bright indoor light, realistic." + NOTEXT,
   2: () => "Vertical 9:16 video, smooth abstract motion background in blue and orange gradients with soft moving shapes, a large empty space in the center for text added later, clean modern look." + NOTEXT,
   3: () => "Vertical 9:16 video, the same blue and orange gradient background, a generic green speech-bubble icon (not a brand logo) gently pulsing in the center, clean modern look." + NOTEXT
 };
@@ -299,7 +301,7 @@ function variantSection(h, idx) {
     sel.onchange = () => { st.modes[sg.i] = sel.value; save(); render(); };
     c.appendChild(sel);
     if (st.modes[sg.i] === "ia") {
-      const pr = PROMPT_IA[sg.i](h) + " Duration: " + sg.len + " seconds.";
+      const pr = PROMPT_IA[sg.i](h) + CAST + " Duration: " + sg.len + " seconds.";
       c.appendChild(el("div", "hint", "Prompt Higgsfield (le texte est ajouté ensuite au montage, pas par l'IA) :"));
       c.appendChild(el("div", "prompt", pr)); c.appendChild(copyBtn("📋 Copier le prompt", () => pr, true));
     } else {
@@ -358,7 +360,7 @@ function sceneText(i, h) { return PROMPT_IA[i](h).replace(/^Vertical 9:16 video,
 function buildMasterPrompt(h) {
   const dur = +st.dur;
   const parts = segments(dur).map(sg => "Seconds " + sg.debut + "-" + sg.fin + ": " + sceneText(sg.i, h) + ".");
-  let p = "Vertical 9:16 realistic social video, " + dur + " seconds. No on-screen text, no subtitles, no logos, no watermark. " + parts.join(" ");
+  let p = "Vertical 9:16 realistic social video, " + dur + " seconds. No on-screen text, no subtitles, no logos, no watermark." + CAST + " " + parts.join(" ");
   if (h === "D") p += " In the first seconds the person says in French: \"Rédige une demande de congé.\"";
   return p + " Warm natural light, handheld camera, fast cuts.";
 }

@@ -1,0 +1,26 @@
+--- 2026-10-06T15:31:30.858Z → bob@ex.fr
+Bonne nouvelle : quelqu’un a « un vélo »
+Bonne nouvelle ! Quelqu’un a ce que tu cherches.
+
+Ton annonce : je cherche « un vélo »
+Son annonce : propose « Vélo électrique »
+
+Pour le/la contacter : alice@ex.fr
+
+Suivre ou supprimer ton annonce : http://localhost:3000/p/7e36fc3bbb12a665100abd040601e2bc
+
+Reste prudent : rencontre-vous dans un lieu public et ne paie jamais à l’avance.
+
+--- 2026-10-06T15:31:30.859Z → alice@ex.fr
+Quelqu’un cherche ce que tu as : « Vélo électrique »
+Bonne nouvelle ! Quelqu’un cherche ce que tu proposes.
+
+Ton annonce : je propose « Vélo électrique »
+Son annonce : cherche « un vélo »
+
+Pour le/la contacter : bob@ex.fr
+
+Suivre ou supprimer ton annonce : http://localhost:3000/p/d4685bb9c897fca46b7645c1adc2379b
+
+Reste prudent : rencontre-vous dans un lieu public et ne paie jamais à l’avance.
+

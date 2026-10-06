@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Troc – dépose ce que tu as, demande ce que tu veux</title>
+<style>
+  :root { --bg:#0f1115; --card:#181b22; --txt:#f3f4f6; --mut:#9aa3b2; --acc:#ff3b6b; --ok:#22c55e; --bd:#2a2f3a; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  main { max-width:480px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:1.7rem; margin:8px 0 4px; line-height:1.2; }
+  .sub { color:var(--mut); margin:0 0 20px; }
+  .card { background:var(--card); border:1px solid var(--bd); border-radius:16px; padding:18px; }
+  .tabs { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+  .tabs button { padding:12px; border-radius:12px; border:1px solid var(--bd); background:transparent; color:var(--txt); font-size:1rem; font-weight:600; cursor:pointer; }
+  .tabs button.on { background:var(--acc); border-color:var(--acc); }
+  label { display:block; font-size:.9rem; color:var(--mut); margin:12px 0 4px; }
+  input[type=text], input[type=email] { width:100%; padding:12px; border-radius:10px; border:1px solid var(--bd); background:#0f1115; color:var(--txt); font-size:1rem; }
+  .check { display:flex; gap:10px; align-items:flex-start; margin-top:14px; font-size:.85rem; color:var(--mut); }
+  .check input { margin-top:3px; }
+  .go { width:100%; margin-top:16px; padding:14px; border:0; border-radius:12px; background:var(--acc); color:#fff; font-size:1.05rem; font-weight:700; cursor:pointer; }
+  .go:disabled { opacity:.6; }
+  .msg { margin-top:14px; padding:12px; border-radius:10px; font-size:.95rem; display:none; }
+  .msg.err { display:block; background:#3b1220; color:#fecdd3; }
+  .msg.ok { display:block; background:#10301d; color:#bbf7d0; }
+  .stats { text-align:center; color:var(--mut); font-size:.85rem; margin-top:18px; }
+  .match { border-top:1px solid var(--bd); padding:12px 0; }
+  .match:first-child { border-top:0; }
+  .tag { font-size:.75rem; color:var(--mut); text-transform:uppercase; letter-spacing:.05em; }
+  .danger { background:transparent; border:1px solid var(--bd); color:var(--mut); margin-top:16px; }
+</style>
+</head>
+<body>
+<main>
+  <section id="home">
+    <h1>Dépose ce que tu as.<br>Demande ce que tu veux.</h1>
+    <p class="sub">Dès qu’une correspondance existe, tu reçois un message avec le contact de la personne.</p>
+    <div class="card">
+      <div class="tabs">
+        <button type="button" id="t-have" class="on">🎁 J’ai</button>
+        <button type="button" id="t-want">🔎 Je cherche</button>
+      </div>
+      <form id="f" novalidate>
+        <label for="text" id="l-text">Qu’est-ce que tu as à donner / vendre ?</label>
+        <input id="text" type="text" maxlength="200" placeholder="ex : vélo électrique" required>
+        <label for="city">Ville (facultatif)</label>
+        <input id="city" type="text" maxlength="60" placeholder="ex : Lyon">
+        <label for="email">Ton e-mail (pour recevoir le message)</label>
+        <input id="email" type="email" maxlength="120" placeholder="toi@exemple.com" autocomplete="email" required>
+        <label class="check"><input id="consent" type="checkbox"> <span>Je comprends que le dépôt est gratuit, que le contact de ma correspondance se débloque après paiement (<b id="price">…</b>), et que mon e-mail lui sera transmis.</span></label>
+        <button class="go" id="go" type="submit">Déposer mon annonce</button>
+        <div id="msg" class="msg" role="status"></div>
+      </form>
+    </div>
+    <p class="stats" id="stats"></p>
+  </section>
+
+  <section id="track" hidden>
+    <h1>Ton annonce</h1>
+    <p class="sub" id="t-desc"></p>
+    <div class="card" id="t-box"></div>
+    <button class="go danger" id="del" type="button">Supprimer mon annonce</button>
+    <p class="stats"><a href="/" style="color:var(--mut)">← Déposer une autre annonce</a></p>
+  </section>
+</main>
+<script>
+(function () {
+  var type = 'have';
+  var $ = function (id) { return document.getElementById(id); };
+
+  function setType(t) {
+    type = t;
+    $('t-have').className = t === 'have' ? 'on' : '';
+    $('t-want').className = t === 'want' ? 'on' : '';
+    $('l-text').textContent = t === 'have' ? 'Qu’est-ce que tu as à donner / vendre ?' : 'Qu’est-ce que tu cherches ?';
+    $('text').placeholder = t === 'have' ? 'ex : vélo électrique' : 'ex : un vélo';
+  }
+  $('t-have').onclick = function () { setType('have'); };
+  $('t-want').onclick = function () { setType('want'); };
+
+  function show(kind, text) { var m = $('msg'); m.className = 'msg ' + kind; m.textContent = text; }
+
+  function api(method, url, body) {
+    return fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Erreur'); return j; }); });
+  }
+
+  $('f').onsubmit = function (e) {
+    e.preventDefault();
+    $('go').disabled = true;
+    api('POST', '/api/posts', {
+      type: type, text: $('text').value, city: $('city').value,
+      email: $('email').value, consent: $('consent').checked
+    }).then(function (r) {
+      try { localStorage.setItem('troc-last', r.token); } catch (x) {}
+      location.href = '/p/' + r.token + (r.matches ? '?new=1' : '');
+    }).catch(function (err) { show('err', err.message); $('go').disabled = false; });
+  };
+
+  api('GET', '/api/stats').then(function (s) {
+    if (s.price) $('price').textContent = s.price;
+    $('stats').textContent = s.posts + ' annonces déposées · ' + s.matches + ' correspondances trouvées';
+  }).catch(function () {});
+
+  var m = location.pathname.match(/^\/p\/([a-f0-9]{32})$/);
+  if (m) {
+    $('home').hidden = true; $('track').hidden = false;
+    var render = function () {
+      api('GET', '/api/posts/' + m[1]).then(function (p) {
+        $('t-desc').textContent = (p.type === 'have' ? 'Tu proposes : ' : 'Tu cherches : ') + p.text + (p.city ? ' (' + p.city + ')' : '');
+        var box = $('t-box'); box.textContent = '';
+        if (!p.matches.length) {
+          var w = document.createElement('p');
+          w.textContent = '⏳ Pas encore de correspondance. Tu recevras un e-mail dès qu’il y en a une (le contact se débloque ensuite pour ' + p.price + '). Partage le lien du site pour que plus de monde dépose !';
+          box.appendChild(w); return;
+        }
+        p.matches.forEach(function (x) {
+          var d = document.createElement('div'); d.className = 'match';
+          var t = document.createElement('div'); t.className = 'tag'; t.textContent = x.type === 'have' ? 'Propose' : 'Cherche';
+          var a = document.createElement('div'); a.textContent = x.text + (x.city ? ' · ' + x.city : '');
+          d.appendChild(t); d.appendChild(a);
+          if (x.unlocked) {
+            var c = document.createElement('a'); c.href = 'mailto:' + x.email; c.textContent = '✉️ ' + x.email; c.style.color = '#ff3b6b';
+            d.appendChild(c);
+          } else {
+            var b = document.createElement('button'); b.className = 'go'; b.type = 'button';
+            b.textContent = '🔓 Débloquer le contact – ' + p.price;
+            b.onclick = function () {
+              b.disabled = true;
+              api('POST', '/api/posts/' + m[1] + '/pay', { matchId: x.id })
+                .then(function (r) { location.href = r.url; })
+                .catch(function (err) { alert(err.message); b.disabled = false; });
+            };
+            d.appendChild(b);
+          }
+          box.appendChild(d);
+        });
+      }).catch(function (err) { $('t-desc').textContent = err.message; });
+    };
+    render();
+    $('del').onclick = function () {
+      if (!confirm('Supprimer définitivement cette annonce ?')) return;
+      api('DELETE', '/api/posts/' + m[1]).then(function () { location.href = '/'; });
+    };
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "_aide": [
+    "Copie ce fichier sous le nom plans.json. Les valeurs ci-dessous sont des EXEMPLES, pas des recommandations.",
+    "videosParMois : quota inclus dans le forfait (se remet à zéro à chaque date anniversaire, non reporté).",
+    "videosParJour : plafond journalier du client (évite qu'il consomme tout son quota en un jour et protège la qualité).",
+    "Le prix du forfait se fixe APRÈS avoir mesuré le coût réel d'une vidéo : prix = coût vidéo x videosParMois x (1 + marge) + coût fixe par client."
+  ],
+  "plans": [
+    { "id": "starter", "nom": "Starter (EXEMPLE)", "videosParMois": 8, "videosParJour": 1, "dureeVideo": 15 },
+    { "id": "pro", "nom": "Pro (EXEMPLE)", "videosParMois": 30, "videosParJour": 2, "dureeVideo": 15 }
+  ]
+}

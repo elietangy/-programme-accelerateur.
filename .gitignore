@@ -4,3 +4,9 @@ serveur/.env
 serveur/donnees/
 serveur/videos/
 node_modules/
+
+# Agent TikTok
+agent-tiktok/.env
+agent-tiktok/donnees/
+agent-tiktok/catalogue.json
+agent-tiktok/plans.json

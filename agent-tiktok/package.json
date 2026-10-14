@@ -1,0 +1,13 @@
+{
+  "name": "agent-tiktok",
+  "version": "0.1.0",
+  "description": "Agent qui crée et publie automatiquement des vidéos TikTok pour des produits numériques (aucune dépendance, Node 18+).",
+  "private": true,
+  "scripts": {
+    "etat": "node agent.js etat",
+    "une-fois": "node agent.js une-fois",
+    "demarrer": "node agent.js demarrer",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": { "node": ">=18" }
+}

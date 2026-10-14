@@ -1,0 +1,47 @@
+{
+  "_aide": [
+    "Copie ce fichier sous le nom catalogue.json et remplace les produits par les tiens (ou ceux de ton client).",
+    "RÈGLE : l'agent n'a le droit de citer que ce qui est écrit ici (prix, chiffres, garantie). Tout autre montant ou chiffre est bloqué avant la vidéo.",
+    "Les deux produits ci-dessous sont des EXEMPLES fictifs, à remplacer."
+  ],
+  "produits": [
+    {
+      "id": "templates-notion-freelance",
+      "actif": true,
+      "nom": "Pack Notion pour freelances (EXEMPLE)",
+      "description": "Des modèles Notion prêts à l'emploi pour suivre ses clients, ses devis et ses factures.",
+      "promesse": "Organiser son activité de freelance en une après-midi.",
+      "publicCible": "freelances et indépendants débutants",
+      "prix": "29 USD",
+      "garantie": "remboursement sous 14 jours",
+      "lien": "https://exemple.com/pack-notion",
+      "cta": "Le lien est dans ma bio.",
+      "langue": "en",
+      "marche": "États-Unis",
+      "ton": "direct, concret, sans jargon",
+      "faitsVerifies": ["14 jours de remboursement"],
+      "temoignagesVerifies": [],
+      "motsInterdits": [],
+      "angles": ["problème", "curiosité", "démonstration", "objection"]
+    },
+    {
+      "id": "guide-ia-commercants",
+      "actif": true,
+      "nom": "Guide IA pour commerçants (EXEMPLE)",
+      "description": "Un guide PDF de prompts prêts à copier pour rédiger messages clients, annonces et réponses.",
+      "promesse": "Gagner du temps sur la rédaction de tous les jours.",
+      "publicCible": "commerçants et entrepreneurs francophones",
+      "prix": "9 000 FCFA",
+      "garantie": "",
+      "lien": "https://exemple.com/guide-ia",
+      "cta": "Clique sur le lien dans ma bio.",
+      "langue": "fr",
+      "marche": "Bénin",
+      "ton": "chaleureux, simple, tutoiement",
+      "faitsVerifies": [],
+      "temoignagesVerifies": [],
+      "motsInterdits": [],
+      "angles": ["problème", "résultat", "démonstration"]
+    }
+  ]
+}

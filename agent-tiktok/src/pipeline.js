@@ -28,7 +28,7 @@ function chargerCatalogue(cfg) {
   let fichier = cfg.catalogue;
   if (!fs.existsSync(fichier)) {
     const exemple = require('path').join(cfg.racine, 'catalogue.exemple.json');
-    if (cfg.simulation && fs.existsSync(exemple)) fichier = exemple;
+    if (cfg.simulation && cfg.catalogueExemple !== false && fs.existsSync(exemple)) fichier = exemple;
     else throw new Error('Catalogue introuvable : copie catalogue.exemple.json en catalogue.json et remplis tes produits.');
   }
   const c = JSON.parse(fs.readFileSync(fichier, 'utf8'));
@@ -110,22 +110,38 @@ async function executerCycle(ctx, opts = {}) {
     return { statut: 'bloque', id: pub.id, bloquants: verdict.bloquants };
   }
 
-  // 2) Vidéo : une seule tentative, jamais relancée automatiquement.
+  // 2) Crédit : réservé APRÈS la conformité (un script bloqué ne coûte rien au client) et AVANT la dépense.
+  let reservation = null;
+  if (ctx.credits) {
+    reservation = await ctx.credits.reserver();
+    if (!reservation.ok) {
+      stock.journal({ evt: 'credits_epuises', produit: produit.id, raison: reservation.raison });
+      return { statut: 'credits_epuises', note: reservation.raison };
+    }
+    pub.credit = reservation.source;
+  }
+
+  // 3) Vidéo : une seule tentative, jamais relancée automatiquement.
   pub.statut = 'generation';
+  let acceptee = false;
   try {
     const { id: videoId } = await ctx.video.lancer({ prompt: contenu.promptVideo, duree: cfg.dureeVideo, format: cfg.format, resolution: cfg.resolution });
+    acceptee = true;
     pub.videoId = videoId; sauver(ctx, pub);   // compté dès que la demande est acceptée
+    if (reservation) await ctx.credits.confirmer(reservation);
     const { url } = await ctx.video.attendre(videoId);
     pub.fichier = stock.chemin('videos/' + pub.id + (cfg.simulation ? '.simu' : '.mp4'));
     fs.mkdirSync(stock.chemin('videos'), { recursive: true });
     await ctx.video.telecharger(url, pub.fichier);
   } catch (e) {
+    // Le client ne paie pas un échec de la plateforme (désactivable : REMBOURSER_ECHEC=0).
+    if (reservation && (!acceptee || cfg.rembourserEchec !== false)) { await ctx.credits.rembourser(reservation, e.message); pub.creditRembourse = true; }
     pub.statut = 'echec_video'; pub.note = e.message; sauver(ctx, pub);
-    stock.journal({ evt: 'echec_video', id: pub.id, message: e.message });
+    stock.journal({ evt: 'echec_video', id: pub.id, message: e.message, creditRembourse: !!pub.creditRembourse });
     return { statut: 'echec_video', id: pub.id, note: e.message };
   }
 
-  // 3) Publication (automatique, ou mise en attente si MODE_PUBLICATION=validation).
+  // 4) Publication (automatique, ou mise en attente si MODE_PUBLICATION=validation).
   if (cfg.publication === 'validation') {
     pub.statut = 'en_attente_validation'; sauver(ctx, pub);
     stock.journal({ evt: 'en_attente_validation', id: pub.id });

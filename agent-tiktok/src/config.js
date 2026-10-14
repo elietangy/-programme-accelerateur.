@@ -31,6 +31,10 @@ function lireConfig(env = process.env, racine = RACINE) {
     fenetreMin: nombre('FENETRE_RATTRAPAGE_MIN', 90),
     maxVideosJour: nombre('MAX_VIDEOS_PAR_JOUR', 2),
     maxDepenseJourUsd: nombre('MAX_DEPENSE_PAR_JOUR_USD', 5),
+    // Garde-fou global de la plateforme : somme de TOUS les clients (c'est TON budget d'API).
+    maxDepensePlateformeJourUsd: nombre('MAX_DEPENSE_PLATEFORME_JOUR_USD', 20),
+    rembourserEchec: texte('REMBOURSER_ECHEC', '1') !== '0',
+    plans: texte('PLANS', path.join(racine, 'plans.json')),
     prixParSecondeUsd: nombre('PRIX_PAR_SECONDE_USD', 0),
     dureeVideo: nombre('DUREE_VIDEO_SECONDES', 15),
     resolution: texte('RESOLUTION', '720p'),

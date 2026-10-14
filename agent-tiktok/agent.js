@@ -4,6 +4,7 @@
 const path = require('path');
 const { chargerEnv, lireConfig } = require('./src/config');
 const { creerContexte, executerCycle, approuver, traiterCreneaux, bilanDuJour, publications } = require('./src/pipeline');
+const { creerPlateforme } = require('./src/plateforme');
 
 chargerEnv(path.join(__dirname, '.env'));
 const cfg = lireConfig();
@@ -39,6 +40,24 @@ async function main() {
     };
     await tick(); setInterval(tick, 60000); return;
   }
-  console.log('Commandes : etat | une-fois [--produit id] | demarrer | approuver <id> | publications | tiktok-connecter');
+  // ----- Mode plateforme (multi-clients) -----
+  if (commande.startsWith('client') || commande === 'crediter' || commande === 'plateforme') {
+    const pf = creerPlateforme(cfg);
+    if (commande === 'client-ajouter') { const c = pf.registre.ajouterClient({ id: args[0], planId: args[1], nom: opt('nom') }); console.log('Client créé : ' + c.id + ' (plan ' + c.planId + ')'); return; }
+    if (commande === 'clients') { for (const c of pf.registre.liste()) { const d = pf.registre.disponible(c.id); console.log(c.id.padEnd(16) + c.statut.padEnd(8) + c.planId.padEnd(10) + 'quota ' + d.quotaRestant + ' + crédits ' + d.credits); } return; }
+    if (commande === 'client-statut') { pf.registre.changerStatut(args[0], args[1]); console.log('Statut mis à jour.'); return; }
+    if (commande === 'client-connecter') { await pf.contexteClient(pf.registre.client(args[0])).tiktok.connecter(); console.log('Compte TikTok du client connecté.'); return; }
+    if (commande === 'crediter') { const r = pf.registre.crediter(args[0], Number(args[1]), args[2]); console.log(r.deja ? 'Déjà crédité (même référence) : rien changé.' : 'Crédits ajoutés. Solde acheté : ' + r.credits); return; }
+    if (commande === 'plateforme-demarrer') {
+      console.log('Plateforme démarrée (' + (cfg.simulation ? 'SIMULATION' : 'RÉEL') + '). Ctrl+C pour arrêter.\n');
+      let enCours = false;
+      const tick = async () => { if (enCours) return; enCours = true;
+        try { for (const r of await pf.traiter()) console.log(new Date().toISOString() + ' ' + JSON.stringify(r)); }
+        catch (e) { console.error('Erreur : ' + e.message); } finally { enCours = false; } };
+      await tick(); setInterval(tick, 60000); return;
+    }
+  }
+  console.log('Commandes (un seul utilisateur) : etat | une-fois [--produit id] | demarrer | approuver <id> | publications | tiktok-connecter');
+  console.log('Commandes (plateforme) : client-ajouter <id> <plan> [--nom X] | clients | client-statut <id> actif|impaye|annule | client-connecter <id> | crediter <id> <nombre> <référence-paiement> | plateforme-demarrer');
 }
 main().catch(e => { console.error('Erreur : ' + e.message); process.exit(1); });

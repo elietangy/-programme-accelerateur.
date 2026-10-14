@@ -9,3 +9,4 @@ node_modules/
 agent-tiktok/.env
 agent-tiktok/donnees/
 agent-tiktok/catalogue.json
+agent-tiktok/plans.json

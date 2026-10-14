@@ -33,12 +33,42 @@ node agent.js demarrer            # tourne et publie aux heures HEURES_PUBLICATI
 node agent.js publications        # derniers posts
 node agent.js approuver <id>      # en mode validation
 node agent.js tiktok-connecter    # connecte un compte TikTok
-npm test                          # 16 tests
+npm test                          # 29 tests
 ```
 
 ## La fiche produit (catalogue.json)
 
 L'agent n'a le droit de citer **que** ce qui est écrit dans la fiche : `prix`, `garantie`, `faitsVerifies`. Un chiffre vrai (« 14 jours de remboursement ») doit y figurer pour être utilisé. `temoignagesVerifies` reste vide tant que tu n'as pas de vrais témoignages. `langue` et `marche` pilotent l'écriture : un produit pour les États-Unis est écrit en anglais naturel, pas traduit du français.
+
+## Mode plateforme : abonnement mensuel + crédits (multi-clients)
+
+Modèle retenu : le client paie un **forfait mensuel avec un quota de vidéos**. Quand le quota est épuisé, il **achète des crédits**. Tu paies les API avec ta propre clé ; le registre empêche tout client de dépasser ce qu'il a payé.
+
+| Règle | Détail |
+|---|---|
+| 1 crédit = 1 vidéo | Durée fixée par le forfait (`plans.json`) |
+| Ordre de consommation | Quota du mois d'abord, puis crédits achetés |
+| Quota | Remis à zéro à la date anniversaire de l'abonnement, non reporté |
+| Crédits achetés | Ne s'effacent pas |
+| Abonnement impayé ou annulé | Aucune vidéo, même s'il reste des crédits achetés |
+| Script bloqué par la conformité | Aucun crédit consommé |
+| Échec de génération | Crédit rendu au client (désactivable : `REMBOURSER_ECHEC=0`) |
+| Paiement notifié deux fois | Crédité une seule fois (référence de paiement unique) |
+| Budget d'API | `MAX_DEPENSE_PLATEFORME_JOUR_USD` : somme de tous les clients, revérifiée avant chaque client |
+
+```
+copy plans.exemple.json plans.json        puis fixe tes forfaits (les valeurs de l'exemple n'ont aucune valeur de recommandation)
+node agent.js client-ajouter marie starter --nom "Marie"
+node agent.js crediter marie 10 <référence-du-paiement>
+node agent.js client-statut marie impaye     (ou actif / annule)
+node agent.js client-connecter marie         (le client autorise son TikTok)
+node agent.js clients                        (quota et crédits restants)
+node agent.js plateforme-demarrer
+```
+
+Chaque client a son dossier `donnees/clients/<id>/` : son `catalogue.json` (ses produits), son jeton TikTok, son journal et ses publications.
+
+**Ce qui reste à construire** (rien de tout cela n'existe encore) : le site où le client s'abonne, connecte son TikTok et dépose son produit ; le branchement du prestataire de paiement, qui doit appeler `crediter` (pack acheté) et `client-statut` (abonnement payé ou impayé) ; les notifications « quota bientôt épuisé » ; la base de données hébergée (les fichiers JSON actuels suffisent pour un seul serveur et quelques clients).
 
 ## Limites à connaître avant de le vendre
 
